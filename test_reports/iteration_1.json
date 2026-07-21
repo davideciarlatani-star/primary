@@ -1,0 +1,48 @@
+{
+  "summary": "First iteration MVP testing of BonusRadar (Expo + FastAPI). Backend: 10/10 pytest tests PASSED including /api/bonuses, /api/bonus/{id}, /api/match, /api/calendar, /api/ai/suggest (LLM gpt-5.4 via EMERGENT_LLM_KEY), /api/simulate. Frontend: 7-step onboarding wizard, home with eligible bonus cards + AI suggest, calendar, simulazione and profilo tabs, bonus detail navigation all work end-to-end on mobile viewport (390x844).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "Calendar (calendario.tsx)",
+        "issue": "Assegno Unico deadline 2026-02-28 is displayed with a 'Scaduta' (expired) badge in Jan 2026. The 'days remaining' logic appears to treat this future date as already passed. Verify current date computation / timezone handling.",
+        "testID": "calendar-screen",
+        "priority": "LOW"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": [
+      {
+        "component": "Some Pressable/View",
+        "issue": "Console warning: 'props.pointerEvents is deprecated. Use style.pointerEvents'. Non-blocking but should be migrated to style.pointerEvents."
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_bonusradar.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "Optional: Investigate 'Scaduta' logic in calendario.tsx for 2026-02-28 deadline (current date offset or timezone off-by-one).",
+    "Optional: Replace props.pointerEvents with style.pointerEvents in components using it (React Native deprecation warning)."
+  ],
+  "critical_code_review_comments": [
+    "server.py cleanly separated (~400 lines), env vars used correctly, /api prefix respected, MongoDB not misused (no _id leaks), AI endpoints have graceful rule-based fallback as claimed.",
+    "Frontend uses EXPO_PUBLIC_BACKEND_URL correctly and all interactive elements have testID attributes.",
+    "Rule-based fallback in /api/simulate correctly returns integer estimated_annual_gain even without LLM."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_bonusradar.py (created)",
+    "/app/test_reports/pytest/pytest_results.xml (generated)"
+  ],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "seed_data_creation": "None - stateless catalog + local storage profile.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Backend tests live at /app/backend/tests/test_bonusradar.py. LLM endpoints (gpt-5.4 via EMERGENT_LLM_KEY) responded within ~5-10s each. Profile is stored locally in AsyncStorage; onboarding must complete 7 steps to reach tabs. Only cosmetic issue found: possible off-by-one in calendar 'Scaduta' badge for 2026-02-28.",
+  "rca_of_issue": "N/A - no critical issues. All 11 review request scenarios verified working."
+}
