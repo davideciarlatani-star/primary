@@ -450,8 +450,34 @@ BONUSES = [
     },
 ]
 
+REQUIREMENTS = {
+    "assegno-unico": "Serve avere almeno un figlio a carico.",
+    "bonus-asilo-nido": "Serve avere figli sotto i 3 anni.",
+    "carta-dedicata-a-te": "Serve ISEE fino a ~15.000 € e nucleo di almeno 3 persone.",
+    "assegno-inclusione": "Serve ISEE molto basso (~10.140 €) con minori, disabilità o over 60.",
+    "naspi": "Serve essere disoccupato dopo un lavoro dipendente con contributi.",
+    "bonus-affitto-giovani": "Serve avere meno di 31 anni, essere in affitto e reddito basso.",
+    "bonus-ristrutturazioni": "Serve essere proprietari di un immobile e presentare la dichiarazione.",
+    "bonus-elettrodomestici": "Disponibile per tutti i residenti.",
+    "bonus-psicologo": "Serve un ISEE non superiore a 40.000 €.",
+    "carta-cultura-giovani": "Serve avere 18 anni con ISEE entro 35.000 €.",
+    "bonus-mamme": "Serve essere lavoratrice/lavoratore con almeno 2 figli.",
+    "detrazione-spese-mediche": "Serve presentare la dichiarazione dei redditi.",
+    "bonus-sociale-bollette": "Serve un ISEE basso (o nucleo numeroso con 3+ figli).",
+    "carta-acquisti": "Serve avere over 65 o figli sotto i 3 anni con ISEE molto basso.",
+    "bonus-nuovi-nati": "Serve una nascita/adozione recente con ISEE entro 40.000 €.",
+    "assegno-maternita-comuni": "Serve essere madre senza altra indennità, con figlio piccolo e ISEE basso.",
+    "detrazione-istruzione": "Servono spese di istruzione e la presentazione della dichiarazione.",
+    "bonus-barriere": "Serve essere proprietario o avere disabilità nel nucleo, e dichiarare.",
+    "reddito-liberta": "Riservato alle donne vittime di violenza seguite dai centri antiviolenza.",
+    "borsa-studio-regionale": "Serve essere studente con ISEE entro le soglie regionali.",
+    "dote-scuola-lombardia": "Serve risiedere in Lombardia, avere figli a scuola e ISEE basso.",
+    "contributo-affitto-regionale": "Serve essere in affitto con ISEE contenuto.",
+}
+
 def public_bonus(b: dict, profile: Optional[Profile] = None) -> dict:
     out = {k: v for k, v in b.items() if k != "rule"}
+    out["requirement"] = REQUIREMENTS.get(b["id"], "Requisiti specifici non soddisfatti dal tuo profilo.")
     if profile is not None:
         out["eligible"] = bool(b["rule"](profile))
     return out

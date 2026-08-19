@@ -21,6 +21,7 @@ export default function Home() {
   const [eligible, setEligible] = useState<Bonus[]>([]);
   const [others, setOthers] = useState<Bonus[]>([]);
   const [ai, setAi] = useState<any>(null);
+  const [aiOpen, setAiOpen] = useState(true);
   const [loading, setLoading] = useState(true);
   const [aiLoading, setAiLoading] = useState(false);
   const [error, setError] = useState(false);
@@ -97,24 +98,36 @@ export default function Home() {
                 <Ionicons name="sparkles" size={18} color={colors.accentOrange} />
               </View>
               <Text style={styles.aiTitle}>Assistente AI</Text>
+              {ai && (
+                <Pressable onPress={() => setAiOpen((v) => !v)} hitSlop={10} style={styles.aiToggle} testID="ai-toggle">
+                  <Ionicons name={aiOpen ? "chevron-up" : "chevron-down"} size={20} color={colors.onSurfaceTertiary} />
+                </Pressable>
+              )}
             </View>
             {ai ? (
-              <>
-                <Text style={styles.aiHeadline}>{ai.headline}</Text>
-                <Text style={styles.aiSummary}>{ai.summary}</Text>
-                {ai.tips?.map((t: string, i: number) => (
-                  <View key={i} style={styles.tipRow}>
-                    <Ionicons name="checkmark-circle" size={16} color={colors.success} />
-                    <Text style={styles.tipText}>{t}</Text>
-                  </View>
-                ))}
-                {ai.priority && (
-                  <View style={styles.priorityBadge}>
-                    <Ionicons name="flag" size={14} color={colors.onWarning} />
-                    <Text style={styles.priorityText}>Priorità: {ai.priority}</Text>
-                  </View>
-                )}
-              </>
+              aiOpen ? (
+                <>
+                  <Text style={styles.aiHeadline}>{ai.headline}</Text>
+                  <Text style={styles.aiSummary}>{ai.summary}</Text>
+                  {ai.tips?.map((t: string, i: number) => (
+                    <View key={i} style={styles.tipRow}>
+                      <Ionicons name="checkmark-circle" size={16} color={colors.success} />
+                      <Text style={styles.tipText}>{t}</Text>
+                    </View>
+                  ))}
+                  {ai.priority && (
+                    <View style={styles.priorityBadge}>
+                      <Ionicons name="flag" size={14} color={colors.onWarning} />
+                      <Text style={styles.priorityText}>Priorità: {ai.priority}</Text>
+                    </View>
+                  )}
+                </>
+              ) : (
+                <Pressable onPress={() => setAiOpen(true)} testID="ai-reopen">
+                  <Text style={styles.aiHeadlineCollapsed} numberOfLines={1}>{ai.headline}</Text>
+                  <Text style={styles.aiCollapsedHint}>{"Tocca per rivedere l'analisi"}</Text>
+                </Pressable>
+              )
             ) : (
               <>
                 <Text style={styles.aiSummary}>{"Ricevi un'analisi personalizzata e consigli su come massimizzare i tuoi aiuti."}</Text>
@@ -167,7 +180,14 @@ export function BonusCard({ bonus, onPress, muted }: { bonus: Bonus; onPress: ()
         </View>
         <Text style={styles.cardTitle}>{bonus.name}</Text>
         <Text style={styles.cardShort} numberOfLines={2}>{bonus.short}</Text>
-        <Text style={styles.cardAmount}>{bonus.amount}</Text>
+        {muted ? (
+          <View style={styles.reasonRow}>
+            <Ionicons name="lock-closed" size={13} color={colors.onSurfaceTertiary} />
+            <Text style={styles.reasonText} numberOfLines={2}>{bonus.requirement}</Text>
+          </View>
+        ) : (
+          <Text style={styles.cardAmount}>{bonus.amount}</Text>
+        )}
       </View>
       <Ionicons name="chevron-forward" size={20} color={colors.onSurfaceTertiary} />
     </Pressable>
@@ -191,6 +211,9 @@ const styles = StyleSheet.create({
   aiHeader: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   aiIcon: { width: 32, height: 32, borderRadius: radius.sm, backgroundColor: colors.accentOrangeLight, alignItems: "center", justifyContent: "center" },
   aiTitle: { fontSize: 14, fontWeight: "700", color: colors.onSurface },
+  aiToggle: { marginLeft: "auto", width: 32, height: 32, alignItems: "center", justifyContent: "center" },
+  aiHeadlineCollapsed: { fontSize: 15, fontWeight: "700", color: colors.brand, marginTop: spacing.xs },
+  aiCollapsedHint: { fontSize: 12, color: colors.onSurfaceTertiary, marginTop: 2 },
   aiHeadline: { fontSize: 18, fontWeight: "800", color: colors.brand, marginTop: spacing.xs },
   aiSummary: { fontSize: 14, color: colors.onSurfaceSecondary, lineHeight: 20 },
   tipRow: { flexDirection: "row", gap: spacing.sm, alignItems: "flex-start", marginTop: spacing.xs },
@@ -208,6 +231,8 @@ const styles = StyleSheet.create({
   cardTitle: { fontSize: 16, fontWeight: "700", color: colors.onSurface },
   cardShort: { fontSize: 13, color: colors.onSurfaceTertiary, marginTop: 2, lineHeight: 18 },
   cardAmount: { fontSize: 14, fontWeight: "800", color: colors.success, marginTop: spacing.xs },
+  reasonRow: { flexDirection: "row", alignItems: "flex-start", gap: 6, marginTop: spacing.xs },
+  reasonText: { flex: 1, fontSize: 12, color: colors.onSurfaceTertiary, fontStyle: "italic", lineHeight: 16 },
   emptyBox: { alignItems: "center", gap: spacing.md, padding: spacing.xl, backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border },
   emptyText: { textAlign: "center", color: colors.onSurfaceTertiary, fontSize: 14, lineHeight: 20 },
 });
