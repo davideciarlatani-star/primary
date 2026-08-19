@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import {
-  View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator,
+  View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator, Linking,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -68,6 +68,12 @@ export default function BonusDetail() {
         </View>
         <Text style={[styles.catTag, { color: cat }]}>{bonus.category}</Text>
         <Text style={styles.title}>{bonus.name}</Text>
+        {bonus.region_scope && bonus.region_scope !== "Nazionale" && (
+          <View style={styles.regionBadge} testID="detail-region">
+            <Ionicons name="location" size={14} color={colors.onAccentOrangeLight} />
+            <Text style={styles.regionBadgeText}>{bonus.region_scope}</Text>
+          </View>
+        )}
 
         <View style={styles.amountCard}>
           <Text style={styles.amountLabel}>Importo</Text>
@@ -83,7 +89,28 @@ export default function BonusDetail() {
 
         <InfoBlock icon="information-circle" title="Descrizione" text={bonus.description} />
         <InfoBlock icon="calendar" title="Scadenza" text={`${d.toLocaleDateString("it-IT")} — ${bonus.deadline_note}`} />
-        <InfoBlock icon="document-text" title="Come richiederlo" text={bonus.how} />
+        {bonus.declaration && (
+          <InfoBlock icon="clipboard" title="Dichiarazione necessaria" text={bonus.declaration} />
+        )}
+
+        <View style={styles.block} testID="block-how">
+          <View style={styles.blockHeader}>
+            <Ionicons name="document-text" size={18} color={colors.brandPrimary} />
+            <Text style={styles.blockTitle}>Come richiederlo</Text>
+          </View>
+          <Text style={styles.blockText}>{bonus.how}</Text>
+          {bonus.apply_url && (
+            <Pressable
+              style={styles.linkBtn}
+              onPress={() => Linking.openURL(bonus.apply_url!)}
+              testID="detail-apply-link"
+            >
+              <Ionicons name="open-outline" size={18} color={colors.onBrandPrimary} />
+              <Text style={styles.linkBtnText}>Vai al sito per fare domanda</Text>
+            </Pressable>
+          )}
+        </View>
+
         <InfoBlock icon="business" title="Ente erogatore" text={bonus.source} />
       </ScrollView>
     </View>
@@ -110,4 +137,8 @@ const styles = StyleSheet.create({
   blockHeader: { flexDirection: "row", alignItems: "center", gap: spacing.sm, marginBottom: spacing.sm },
   blockTitle: { fontSize: 15, fontWeight: "800", color: colors.onSurface },
   blockText: { fontSize: 14, color: colors.onSurfaceSecondary, lineHeight: 21 },
+  regionBadge: { flexDirection: "row", alignItems: "center", gap: 6, alignSelf: "flex-start", backgroundColor: colors.accentOrangeLight, paddingHorizontal: spacing.md, paddingVertical: 6, borderRadius: radius.pill },
+  regionBadgeText: { color: colors.onAccentOrangeLight, fontWeight: "700", fontSize: 12 },
+  linkBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: spacing.sm, backgroundColor: colors.brandPrimary, height: 48, borderRadius: radius.md, marginTop: spacing.md },
+  linkBtnText: { color: colors.onBrandPrimary, fontWeight: "700", fontSize: 15 },
 });

@@ -20,12 +20,14 @@ export default function Simulazione() {
   const [income, setIncome] = useState("20000");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
+  const [expanded, setExpanded] = useState<number | null>(null);
 
   const run = async () => {
     if (!profile) return;
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setLoading(true);
     setResult(null);
+    setExpanded(null);
     try {
       const res = await api.simulate(profile, parseFloat(income) || 0);
       setResult(res);
@@ -84,13 +86,23 @@ export default function Simulazione() {
               {result.breakdown?.length > 0 && (
                 <View style={styles.breakdownCard}>
                   <Text style={styles.breakdownTitle}>Come si compone</Text>
-                  {result.breakdown.map((b: any, i: number) => (
-                    <View key={i} style={styles.breakdownRow}>
-                      <View style={styles.dot} />
-                      <Text style={styles.breakdownLabel}>{b.label}</Text>
-                      <Text style={styles.breakdownAmount}>€ {fmt(b.amount)}</Text>
-                    </View>
-                  ))}
+                  <Text style={styles.breakdownHint}>Tocca una voce per approfondire</Text>
+                  {result.breakdown.map((b: any, i: number) => {
+                    const open = expanded === i;
+                    return (
+                      <View key={i} style={styles.breakdownItem}>
+                        <Pressable style={styles.breakdownRow} onPress={() => setExpanded(open ? null : i)} testID={`breakdown-${i}`}>
+                          <View style={styles.dot} />
+                          <Text style={styles.breakdownLabel}>{b.label}</Text>
+                          <Text style={styles.breakdownAmount}>€ {fmt(b.amount)}</Text>
+                          <Ionicons name={open ? "chevron-up" : "chevron-down"} size={18} color={colors.onSurfaceTertiary} />
+                        </Pressable>
+                        {open && b.detail && (
+                          <Text style={styles.breakdownDetail} testID={`breakdown-detail-${i}`}>{b.detail}</Text>
+                        )}
+                      </View>
+                    );
+                  })}
                 </View>
               )}
 
@@ -141,8 +153,11 @@ const styles = StyleSheet.create({
   afterAmount: { color: "#fff", fontSize: 44, fontWeight: "900", marginVertical: spacing.xs },
   afterHint: { color: colors.accentOrange, fontSize: 13, fontWeight: "700" },
   breakdownCard: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.border },
-  breakdownTitle: { fontSize: 15, fontWeight: "800", color: colors.onSurface, marginBottom: spacing.sm },
-  breakdownRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, paddingVertical: spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.divider },
+  breakdownTitle: { fontSize: 15, fontWeight: "800", color: colors.onSurface, marginBottom: 2 },
+  breakdownHint: { fontSize: 12, color: colors.onSurfaceTertiary, marginBottom: spacing.xs },
+  breakdownItem: { borderBottomWidth: 1, borderBottomColor: colors.divider },
+  breakdownRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, paddingVertical: spacing.md, minHeight: 48 },
+  breakdownDetail: { fontSize: 13, color: colors.onSurfaceSecondary, lineHeight: 19, paddingBottom: spacing.md, paddingLeft: spacing.lg },
   dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.accentOrange },
   breakdownLabel: { flex: 1, fontSize: 14, color: colors.onSurfaceSecondary },
   breakdownAmount: { fontSize: 15, fontWeight: "800", color: colors.success },

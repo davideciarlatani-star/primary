@@ -25,6 +25,9 @@ export type Bonus = {
   how: string;
   source: string;
   why: string;
+  declaration?: string;
+  apply_url?: string;
+  region_scope?: string;
   eligible?: boolean;
 };
 
