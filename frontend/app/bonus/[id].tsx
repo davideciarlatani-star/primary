@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { api } from "@/src/api";
+import { useProfile } from "@/src/ProfileContext";
 import { colors, spacing, radius, categoryColors } from "@/src/theme";
 import { Bonus } from "@/src/types";
 
@@ -13,6 +14,7 @@ export default function BonusDetail() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { premium } = useProfile();
   const [bonus, setBonus] = useState<Bonus | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -99,14 +101,34 @@ export default function BonusDetail() {
             <Text style={styles.blockTitle}>Come richiederlo</Text>
           </View>
           <Text style={styles.blockText}>{bonus.how}</Text>
-          {bonus.apply_url && (
-            <Pressable
-              style={styles.linkBtn}
-              onPress={() => Linking.openURL(bonus.apply_url!)}
-              testID="detail-apply-link"
-            >
-              <Ionicons name="open-outline" size={18} color={colors.onBrandPrimary} />
-              <Text style={styles.linkBtnText}>Vai al sito per fare domanda</Text>
+          {premium ? (
+            bonus.apply_url ? (
+              <Pressable
+                style={styles.linkBtn}
+                onPress={() => Linking.openURL(bonus.apply_url!)}
+                testID="detail-apply-link"
+              >
+                <Ionicons name="open-outline" size={18} color={colors.onBrandPrimary} />
+                <Text style={styles.linkBtnText}>Vai alla pagina della domanda</Text>
+              </Pressable>
+            ) : (
+              <View style={styles.noteBox} testID="detail-apply-note">
+                <Ionicons name="people" size={16} color={colors.brandPrimary} />
+                <Text style={styles.noteText}>{bonus.apply_note || "Richiesta tramite CAF, patronato o sportello dedicato."}</Text>
+              </View>
+            )
+          ) : (
+            <Pressable style={styles.lockBanner} onPress={() => router.push("/(tabs)/profilo")} testID="detail-premium-lock">
+              <View style={styles.lockIcon}>
+                <Ionicons name="lock-closed" size={18} color={colors.onAccentOrange} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.lockTitle}>Funzione Premium</Text>
+                <Text style={styles.lockText}>{"Sblocca il link diretto alla pagina di domanda dell'ente."}</Text>
+              </View>
+              <View style={styles.lockCta}>
+                <Text style={styles.lockCtaText}>Passa a Premium</Text>
+              </View>
             </Pressable>
           )}
         </View>
@@ -141,4 +163,12 @@ const styles = StyleSheet.create({
   regionBadgeText: { color: colors.onAccentOrangeLight, fontWeight: "700", fontSize: 12 },
   linkBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: spacing.sm, backgroundColor: colors.brandPrimary, height: 48, borderRadius: radius.md, marginTop: spacing.md },
   linkBtnText: { color: colors.onBrandPrimary, fontWeight: "700", fontSize: 15 },
+  noteBox: { flexDirection: "row", gap: spacing.sm, alignItems: "flex-start", backgroundColor: colors.brandTertiary, borderRadius: radius.md, padding: spacing.md, marginTop: spacing.md },
+  noteText: { flex: 1, fontSize: 13, color: colors.onBrandTertiary, lineHeight: 19, fontWeight: "500" },
+  lockBanner: { flexDirection: "row", alignItems: "center", gap: spacing.md, backgroundColor: colors.accentOrangeLight, borderRadius: radius.md, padding: spacing.md, marginTop: spacing.md, borderWidth: 1, borderColor: colors.accentOrange },
+  lockIcon: { width: 36, height: 36, borderRadius: radius.sm, backgroundColor: colors.accentOrange, alignItems: "center", justifyContent: "center" },
+  lockTitle: { fontSize: 14, fontWeight: "800", color: colors.onAccentOrangeLight },
+  lockText: { fontSize: 12, color: colors.onAccentOrangeLight, lineHeight: 16, marginTop: 1 },
+  lockCta: { backgroundColor: colors.accentOrange, paddingHorizontal: spacing.md, paddingVertical: 8, borderRadius: radius.pill },
+  lockCtaText: { color: colors.onAccentOrange, fontWeight: "700", fontSize: 12 },
 });

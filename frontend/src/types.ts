@@ -28,6 +28,7 @@ export type Bonus = {
   requirement?: string;
   declaration?: string;
   apply_url?: string;
+  apply_note?: string;
   region_scope?: string;
   eligible?: boolean;
 };

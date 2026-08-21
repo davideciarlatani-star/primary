@@ -67,7 +67,7 @@ BONUSES = [
         "rule": lambda p: p.children > 0,
         "why": "Hai figli a carico nel nucleo familiare.",
         "declaration": "Domanda telematica INPS dedicata — non serve il 730.",
-        "apply_url": "https://www.inps.it",
+        "apply_url": "https://www.inps.it/it/it/dettaglio-scheda.it.schede-servizio-strumento.schede-servizi.assegno-unico-e-universale-per-i-figli-a-carico-55984.assegno-unico-e-universale-per-i-figli-a-carico.html",
         "region_scope": "Nazionale",
     },
     {
@@ -85,7 +85,7 @@ BONUSES = [
         "rule": lambda p: p.children_under_3 > 0,
         "why": "Hai figli sotto i 3 anni.",
         "declaration": "Domanda telematica INPS dedicata con ricevute — non serve il 730.",
-        "apply_url": "https://www.inps.it",
+        "apply_url": "https://www.inps.it/it/it/dettaglio-scheda.it.schede-servizio-strumento.schede-servizi.bonus-asilo-nido-e-forme-di-supporto-presso-la-propria-abitazione-51105.bonus-asilo-nido-e-forme-di-supporto-presso-la-propria-abitazione.html",
         "region_scope": "Nazionale",
     },
     {
@@ -103,7 +103,8 @@ BONUSES = [
         "rule": lambda p: p.isee_range == "0-10" and p.household_size >= 3,
         "why": "Nucleo familiare numeroso con ISEE basso.",
         "declaration": "Nessuna domanda: assegnazione automatica in base all'ISEE (DSU).",
-        "apply_url": "https://www.lavoro.gov.it",
+        "apply_url": "",
+        "apply_note": "Nessuna domanda: assegnazione automatica in base all'ISEE tramite INPS e Comune di residenza.",
         "region_scope": "Nazionale",
     },
     {
@@ -121,7 +122,8 @@ BONUSES = [
         "rule": lambda p: p.isee_range == "0-10" and (p.children > 0 or p.disability or p.age_range in ("51-67", "67+")),
         "why": "ISEE molto basso con presenza di minori, disabilità o over 60.",
         "declaration": "Domanda INPS + Patto di attivazione — non serve il 730.",
-        "apply_url": "https://www.inps.it",
+        "apply_url": "",
+        "apply_note": "Richiesta tramite CAF o patronato (invio telematico INPS); poi iscrizione al portale SIISL per il Patto di Attivazione.",
         "region_scope": "Nazionale",
     },
     {
@@ -139,7 +141,8 @@ BONUSES = [
         "rule": lambda p: p.employment == "disoccupato",
         "why": "Risulti attualmente disoccupato.",
         "declaration": "Domanda telematica INPS dedicata — non serve il 730.",
-        "apply_url": "https://www.inps.it",
+        "apply_url": "",
+        "apply_note": "Richiesta tramite CAF o patronato (invio telematico all'INPS), entro 68 giorni dalla cessazione.",
         "region_scope": "Nazionale",
     },
     {
@@ -157,7 +160,8 @@ BONUSES = [
         "rule": lambda p: p.age_range in ("18-25", "26-35") and p.renting and p.isee_range in ("0-10", "10-25"),
         "why": "Sei giovane, in affitto e con reddito contenuto.",
         "declaration": "Va inserita nella dichiarazione dei redditi (730 o Redditi PF).",
-        "apply_url": "https://www.agenziaentrate.gov.it",
+        "apply_url": "",
+        "apply_note": "Richiesta tramite dichiarazione dei redditi (730/Redditi PF) con CAF o commercialista.",
         "region_scope": "Nazionale",
     },
     {
@@ -175,7 +179,8 @@ BONUSES = [
         "rule": lambda p: p.home_owner and p.has_filed,
         "why": "Sei proprietario di un immobile.",
         "declaration": "Va inserita nella dichiarazione dei redditi (730 o Redditi PF).",
-        "apply_url": "https://www.agenziaentrate.gov.it",
+        "apply_url": "",
+        "apply_note": "Richiesta tramite dichiarazione dei redditi con CAF o commercialista (pagamento con bonifico parlante).",
         "region_scope": "Nazionale",
     },
     {
@@ -193,7 +198,7 @@ BONUSES = [
         "rule": lambda p: True,
         "why": "Disponibile per tutti i residenti che acquistano elettrodomestici efficienti.",
         "declaration": "Voucher su piattaforma dedicata — nessuna dichiarazione.",
-        "apply_url": "https://www.mimit.gov.it",
+        "apply_url": "https://bonuselettrodomestici.it",
         "region_scope": "Nazionale",
     },
     {
@@ -211,7 +216,7 @@ BONUSES = [
         "rule": lambda p: p.isee_range in ("0-10", "10-25", "25-40"),
         "why": "Rientri nelle soglie ISEE previste per il contributo.",
         "declaration": "Domanda telematica INPS dedicata — non serve il 730.",
-        "apply_url": "https://www.inps.it",
+        "apply_url": "https://www.inps.it/it/it/dettaglio-scheda.it.schede-servizio-strumento.schede-servizi.contributo-per-sostenere-le-spese-relative-a-sessioni-di-psicoterapia-bonus-psicologo.html",
         "region_scope": "Nazionale",
     },
     {
@@ -229,7 +234,7 @@ BONUSES = [
         "rule": lambda p: p.age_range == "18-25" and p.isee_range in ("0-10", "10-25", "25-40"),
         "why": "Sei un giovane con ISEE entro la soglia prevista.",
         "declaration": "Registrazione sul portale dedicato — nessuna dichiarazione.",
-        "apply_url": "https://cartagiovani.cultura.gov.it",
+        "apply_url": "https://cartegiovani.cultura.gov.it",
         "region_scope": "Nazionale",
     },
     {
@@ -247,7 +252,8 @@ BONUSES = [
         "rule": lambda p: p.children >= 2 and p.employment in ("dipendente", "autonomo"),
         "why": "Hai due o più figli e sei lavoratrice/lavoratore.",
         "declaration": "Comunicazione al datore di lavoro — nessuna dichiarazione.",
-        "apply_url": "https://www.inps.it",
+        "apply_url": "",
+        "apply_note": "Comunicazione diretta al datore di lavoro (per le autonome, all'INPS).",
         "region_scope": "Nazionale",
     },
     {
@@ -265,7 +271,8 @@ BONUSES = [
         "rule": lambda p: p.has_filed,
         "why": "Puoi recuperare parte delle spese sanitarie in dichiarazione.",
         "declaration": "Va inserita nella dichiarazione dei redditi (730 o Redditi PF).",
-        "apply_url": "https://www.agenziaentrate.gov.it",
+        "apply_url": "",
+        "apply_note": "Richiesta tramite dichiarazione dei redditi (730/Redditi PF) con CAF o commercialista.",
         "region_scope": "Nazionale",
     },
     {
@@ -283,7 +290,8 @@ BONUSES = [
         "rule": lambda p: p.isee_range == "0-10" or (p.isee_range == "10-25" and p.children >= 3),
         "why": "Rientri nelle soglie ISEE del bonus sociale.",
         "declaration": "Automatico con ISEE (DSU) — nessuna domanda specifica.",
-        "apply_url": "https://www.arera.it/it/bonus_sociale.htm",
+        "apply_url": "",
+        "apply_note": "Nessuna domanda: presenta la DSU per l'ISEE tramite CAF o INPS; lo sconto arriva in automatico in bolletta.",
         "region_scope": "Nazionale",
     },
     {
@@ -301,7 +309,8 @@ BONUSES = [
         "rule": lambda p: (p.age_range == "67+" or p.children_under_3 > 0) and p.isee_range == "0-10",
         "why": "Hai over 65 o bimbi piccoli con ISEE molto basso.",
         "declaration": "Domanda con modulo dedicato presso Poste/INPS — non serve il 730.",
-        "apply_url": "https://www.inps.it",
+        "apply_url": "",
+        "apply_note": "Richiesta tramite modulo dedicato presso gli uffici di Poste Italiane.",
         "region_scope": "Nazionale",
     },
     {
@@ -319,7 +328,7 @@ BONUSES = [
         "rule": lambda p: p.children_under_3 > 0 and p.isee_range in ("0-10", "10-25", "25-40"),
         "why": "Hai un figlio nato di recente e ISEE entro 40.000 €.",
         "declaration": "Domanda telematica INPS dedicata — non serve il 730.",
-        "apply_url": "https://www.inps.it",
+        "apply_url": "https://www.inps.it/it/it/dettaglio-scheda.it.schede-servizio-strumento.schede-servizi.bonus-nuovi-nati.html",
         "region_scope": "Nazionale",
     },
     {
@@ -337,7 +346,8 @@ BONUSES = [
         "rule": lambda p: p.children_under_3 > 0 and p.isee_range == "0-10" and p.employment in ("disoccupato", "studente", "mai_dichiarato"),
         "why": "Hai un figlio piccolo e non ricevi altra indennità di maternità.",
         "declaration": "Domanda al Comune di residenza — non serve il 730.",
-        "apply_url": "https://www.inps.it",
+        "apply_url": "",
+        "apply_note": "Richiesta tramite lo sportello del Comune di residenza (o CAF/patronato).",
         "region_scope": "Nazionale",
     },
     {
@@ -355,7 +365,8 @@ BONUSES = [
         "rule": lambda p: p.has_filed and (p.children > 0 or p.age_range == "18-25"),
         "why": "Hai spese di istruzione detraibili per te o per i figli.",
         "declaration": "Va inserita nella dichiarazione dei redditi (730 o Redditi PF).",
-        "apply_url": "https://www.agenziaentrate.gov.it",
+        "apply_url": "",
+        "apply_note": "Richiesta tramite dichiarazione dei redditi con CAF o commercialista.",
         "region_scope": "Nazionale",
     },
     {
@@ -373,7 +384,8 @@ BONUSES = [
         "rule": lambda p: (p.home_owner or p.disability) and p.has_filed,
         "why": "Sei proprietario o hai disabilità nel nucleo: interventi agevolati al 75%.",
         "declaration": "Va inserita in dichiarazione (730/Redditi PF) + bonifico dedicato.",
-        "apply_url": "https://www.agenziaentrate.gov.it",
+        "apply_url": "",
+        "apply_note": "Richiesta tramite dichiarazione dei redditi con CAF o commercialista (pagamento con bonifico dedicato).",
         "region_scope": "Nazionale",
     },
     {
@@ -391,7 +403,8 @@ BONUSES = [
         "rule": lambda p: False,
         "why": "Misura dedicata alle donne vittime di violenza seguite dai centri antiviolenza.",
         "declaration": "Domanda tramite servizi sociali del Comune — non serve il 730.",
-        "apply_url": "https://www.inps.it",
+        "apply_url": "",
+        "apply_note": "Richiesta tramite i servizi sociali del Comune e il centro antiviolenza di riferimento.",
         "region_scope": "Nazionale",
     },
     {
@@ -409,7 +422,8 @@ BONUSES = [
         "rule": lambda p: p.age_range in ("18-25", "26-35") and p.employment == "studente" and p.isee_range in ("0-10", "10-25"),
         "why": "Sei uno studente con ISEE entro le soglie regionali.",
         "declaration": "Domanda al portale regionale per il diritto allo studio — non è il 730.",
-        "apply_url": "https://www.mur.gov.it",
+        "apply_url": "",
+        "apply_note": "Richiesta tramite il portale regionale per il diritto allo studio (es. DiSCo Lazio, DSU Toscana) o CAF.",
         "region_scope": "Nazionale (bando per singola regione)",
     },
     {
@@ -445,7 +459,8 @@ BONUSES = [
         "rule": lambda p: p.renting and p.isee_range in ("0-10", "10-25"),
         "why": "Sei in affitto con ISEE contenuto: puoi accedere al fondo regionale.",
         "declaration": "Domanda al Comune/portale regionale — non serve il 730.",
-        "apply_url": "https://www.mit.gov.it",
+        "apply_url": "",
+        "apply_note": "Richiesta tramite il Comune di residenza o il portale della tua Regione durante il bando.",
         "region_scope": "Nazionale (bando per singola regione)",
     },
 ]
