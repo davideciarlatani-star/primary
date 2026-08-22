@@ -625,7 +625,7 @@ GUIDES = {
 def public_bonus(b: dict, profile: Optional[Profile] = None) -> dict:
     out = {k: v for k, v in b.items() if k != "rule"}
     out["requirement"] = REQUIREMENTS.get(b["id"], "Requisiti specifici non soddisfatti dal tuo profilo.")
-    out["has_guide"] = b["id"] in GUIDES
+    out["has_guide"] = True
     if profile is not None:
         out["eligible"] = bool(b["rule"](profile))
     return out
@@ -640,12 +640,69 @@ async def root():
 async def list_bonuses():
     return {"bonuses": [public_bonus(b) for b in BONUSES]}
 
+def build_guide(b: dict) -> dict:
+    text = f"{b.get('declaration','')} {b.get('how','')} {b.get('apply_note','')}".lower()
+    req = REQUIREMENTS.get(b["id"], "")
+    if "poste" in text or "comune" in text or "sportello" in text or "servizi sociali" in text:
+        channel = "sportello"
+    elif "inps" in text or "patronato" in text:
+        channel = "inps"
+    elif "dichiarazione dei redditi" in text or "quadro e" in text:
+        channel = "tax"
+    elif "portale" in text or "bandi" in text or "piattaforma" in text or "registrazione" in text or b.get("apply_url"):
+        channel = "portale"
+    else:
+        channel = "generic"
+
+    docs = {
+        "tax": ["SPID/CIE o credenziali per l'Agenzia delle Entrate", "Fatture, ricevute e bonifici delle spese sostenute", "Certificazione Unica (CU) e altri redditi", "Codice fiscale tuo e dei familiari a carico"],
+        "inps": ["SPID livello 2, CIE 3.0 o CNS", "ISEE in corso di validità (DSU aggiornata)", "Codici fiscali del nucleo familiare", "IBAN intestato o cointestato al richiedente"],
+        "sportello": ["Documento d'identità valido", "ISEE in corso di validità", "Codice fiscale", "Documentazione specifica richiesta dallo sportello/bando"],
+        "portale": ["SPID o CIE per l'accesso al portale", "ISEE in corso di validità (se richiesto)", "Documentazione a supporto (contratto, ricevute, ecc.)", "IBAN per l'eventuale accredito"],
+        "generic": ["Documento d'identità e codice fiscale", "ISEE in corso di validità (se previsto)", "Documentazione a supporto della richiesta"],
+    }[channel]
+
+    steps = {
+        "tax": ["Recupera i documenti di spesa dell'anno di riferimento.", "Accedi al 730 precompilato con SPID/CIE o rivolgiti a un CAF/commercialista.", "Vai nel Quadro E - Oneri e spese e individua la voce corretta.", "Inserisci gli importi e le quote di spettanza.", "Verifica il calcolo della detrazione e invia la dichiarazione entro la scadenza."],
+        "inps": ["Assicurati di avere un ISEE valido (aggiorna la DSU se necessario).", "Accedi al portale INPS con SPID/CIE al servizio dedicato.", "Seleziona 'Nuova domanda' e verifica i dati del nucleo.", "Compila i campi richiesti e indica l'IBAN per l'accredito.", "Invia la domanda e conserva il numero di protocollo."],
+        "sportello": ["Verifica requisiti e finestra di apertura presso il Comune/sportello.", "Prepara ISEE, documento d'identità e la modulistica richiesta.", "Compila il modulo di domanda (anche con l'aiuto di CAF/patronato).", "Consegna la domanda e allega tutta la documentazione.", "Conserva la ricevuta di protocollo della domanda."],
+        "portale": ["Verifica l'apertura del bando/servizio sul portale dedicato.", "Registrati o accedi con SPID/CIE.", "Compila l'anagrafica e allega i documenti richiesti.", "Indica l'IBAN e conferma i dati inseriti.", "Invia la domanda entro la scadenza e salva la ricevuta."],
+        "generic": ["Verifica di possedere i requisiti richiesti.", "Raccogli la documentazione necessaria.", "Presenta la richiesta secondo il canale indicato.", "Conserva la ricevuta o il protocollo della domanda."],
+    }[channel]
+
+    critical = [
+        {"field": "Requisito principale", "note": req or "Controlla di rientrare nei requisiti indicati per questo aiuto."},
+        {"field": "ISEE aggiornato", "note": "Molti aiuti richiedono un ISEE valido: aggiorna la DSU a inizio anno per non perdere importi."},
+    ]
+    if channel in ("inps", "portale"):
+        critical.append({"field": "IBAN del beneficiario", "note": "Deve essere intestato o cointestato a chi presenta la domanda, altrimenti l'accredito si blocca."})
+    if channel == "tax":
+        critical.append({"field": "Quota di spettanza", "note": "Se la spesa è cointestata, indica solo la tua quota (es. 50%)."})
+    critical.append({"field": "Scadenza", "note": b.get("deadline_note", "Rispetta la finestra temporale indicata.")})
+
+    return {
+        "title": b["name"],
+        "intro": f"{b['description']} {b.get('declaration','')}",
+        "documents": docs,
+        "steps": steps,
+        "critical_fields": critical,
+        "apply_url": b.get("apply_url", ""),
+        "deadlines_requirements": [b.get("deadline_note", ""), req or "Verifica i requisiti sul sito dell'ente erogatore."],
+        "extra_info": [
+            {"title": "Dove e come presentare", "text": b.get("apply_note") or b.get("how", "")},
+            {"title": "Ente erogatore", "text": f"La misura è gestita da: {b.get('source','')}. In caso di dubbi puoi rivolgerti a un CAF o patronato per assistenza gratuita."},
+        ],
+    }
+
+
 @api_router.get("/bonus/{bonus_id}/guide")
 async def get_guide(bonus_id: str):
-    guide = GUIDES.get(bonus_id)
-    if not guide:
-        raise HTTPException(status_code=404, detail="Guida non disponibile per questo bonus")
-    return guide
+    if bonus_id in GUIDES:
+        return GUIDES[bonus_id]
+    for b in BONUSES:
+        if b["id"] == bonus_id:
+            return build_guide(b)
+    raise HTTPException(status_code=404, detail="Guida non disponibile per questo bonus")
 
 @api_router.get("/bonus/{bonus_id}")
 async def get_bonus(bonus_id: str):
