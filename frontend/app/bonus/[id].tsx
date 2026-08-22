@@ -89,8 +89,27 @@ export default function BonusDetail() {
           </View>
         )}
 
-        <InfoBlock icon="information-circle" title="Descrizione" text={bonus.description} />
-        <InfoBlock icon="calendar" title="Scadenza" text={`${d.toLocaleDateString("it-IT")} — ${bonus.deadline_note}`} />
+        {bonus.has_guide && (
+          premium ? (
+            <Pressable style={styles.guideBtn} onPress={() => router.push(`/guida/${bonus.id}`)} testID="btn-request-bonus">
+              <Ionicons name="reader" size={20} color={colors.onBrandPrimary} />
+              <Text style={styles.guideBtnText}>Voglio richiedere questo bonus</Text>
+            </Pressable>
+          ) : (
+            <Pressable style={styles.guideLock} onPress={() => router.push("/(tabs)/profilo")} testID="btn-request-bonus-locked">
+              <View style={styles.lockIcon}>
+                <Ionicons name="lock-closed" size={18} color={colors.onAccentOrange} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.guideLockTitle}>Guida passo-passo · Premium</Text>
+                <Text style={styles.guideLockText}>{"Passa a Premium per sbloccare la guida completa alla domanda."}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.onAccentOrangeLight} />
+            </Pressable>
+          )
+        )}
+
+        <InfoBlock icon="information-circle" title="Descrizione" text={bonus.description} />        <InfoBlock icon="calendar" title="Scadenza" text={`${d.toLocaleDateString("it-IT")} — ${bonus.deadline_note}`} />
         {bonus.declaration && (
           <InfoBlock icon="clipboard" title="Dichiarazione necessaria" text={bonus.declaration} />
         )}
@@ -171,4 +190,9 @@ const styles = StyleSheet.create({
   lockText: { fontSize: 12, color: colors.onAccentOrangeLight, lineHeight: 16, marginTop: 1 },
   lockCta: { backgroundColor: colors.accentOrange, paddingHorizontal: spacing.md, paddingVertical: 8, borderRadius: radius.pill },
   lockCtaText: { color: colors.onAccentOrange, fontWeight: "700", fontSize: 12 },
+  guideBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: spacing.sm, backgroundColor: colors.brandPrimary, height: 54, borderRadius: radius.md },
+  guideBtnText: { color: colors.onBrandPrimary, fontWeight: "700", fontSize: 16 },
+  guideLock: { flexDirection: "row", alignItems: "center", gap: spacing.md, backgroundColor: colors.accentOrangeLight, borderRadius: radius.md, padding: spacing.md, borderWidth: 1, borderColor: colors.accentOrange },
+  guideLockTitle: { fontSize: 14, fontWeight: "800", color: colors.onAccentOrangeLight },
+  guideLockText: { fontSize: 12, color: colors.onAccentOrangeLight, lineHeight: 16, marginTop: 1 },
 });

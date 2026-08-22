@@ -30,6 +30,7 @@ export type Bonus = {
   apply_url?: string;
   apply_note?: string;
   region_scope?: string;
+  has_guide?: boolean;
   eligible?: boolean;
 };
 

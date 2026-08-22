@@ -445,6 +445,24 @@ BONUSES = [
         "region_scope": "Lombardia",
     },
     {
+        "id": "bonus-affitto-lombardia",
+        "name": "Bonus Affitto Lombardia",
+        "category": "Casa",
+        "icon": "home",
+        "short": "Contributo di Regione Lombardia per l'affitto.",
+        "description": "Misura regionale (fondi statali + regionali gestiti dai Comuni/ALER) a sostegno degli inquilini lombardi in difficoltà economica per il pagamento del canone di locazione della prima casa.",
+        "amount": "fino a circa 2.400 € (max 4 mensilità)",
+        "deadline": "2026-10-31",
+        "deadline_note": "Bando annuale di Regione Lombardia/Comuni, di norma in autunno; verifica le aperture sul portale.",
+        "how": "Domanda sul portale Bandi Online di Regione Lombardia (o presso il Comune) con SPID/CIE, allegando ISEE e contratto registrato.",
+        "source": "Regione Lombardia",
+        "rule": lambda p: p.region == "Lombardia" and p.renting and p.isee_range in ("0-10", "10-25"),
+        "why": "Risiedi in Lombardia, sei in affitto e con ISEE entro la soglia del bando.",
+        "declaration": "Domanda su Bandi Online Regione Lombardia — non serve il 730.",
+        "apply_url": "https://www.bandi.regione.lombardia.it",
+        "region_scope": "Lombardia",
+    },
+    {
         "id": "contributo-affitto-regionale",
         "name": "Contributo Affitto (Fondo Regionale)",
         "category": "Casa",
@@ -487,12 +505,127 @@ REQUIREMENTS = {
     "reddito-liberta": "Riservato alle donne vittime di violenza seguite dai centri antiviolenza.",
     "borsa-studio-regionale": "Serve essere studente con ISEE entro le soglie regionali.",
     "dote-scuola-lombardia": "Serve risiedere in Lombardia, avere figli a scuola e ISEE basso.",
+    "bonus-affitto-lombardia": "Serve risiedere in Lombardia, essere in affitto e avere ISEE entro la soglia del bando.",
     "contributo-affitto-regionale": "Serve essere in affitto con ISEE contenuto.",
+}
+
+GUIDES = {
+    "bonus-affitto-giovani": {
+        "title": "Detrazione Affitto nel 730",
+        "intro": "La detrazione per l'affitto dell'abitazione principale si ottiene inserendo i dati del contratto nella dichiarazione dei redditi (730 o Redditi PF). Non è una domanda a sportello: è uno sconto d'imposta.",
+        "documents": [
+            "Contratto di locazione registrato all'Agenzia delle Entrate",
+            "Estremi di registrazione del contratto (data e numero)",
+            "Codice fiscale del proprietario (locatore)",
+            "Ricevute o bonifici dei canoni pagati nell'anno",
+            "Certificazione Unica (CU) e/o altri redditi",
+            "Attestazione di residenza nell'immobile (autocertificabile)",
+        ],
+        "steps": [
+            "Accedi al 730 precompilato sul sito dell'Agenzia delle Entrate con SPID/CIE, oppure rivolgiti a un CAF/commercialista.",
+            "Vai nel Quadro E - Oneri e spese, sezione 'Detrazioni per canoni di locazione'.",
+            "Scegli il rigo corretto in base al tuo caso: E71 (inquilini abitazione principale) o E72 (giovani under 31).",
+            "Indica il codice del tipo di detrazione e il numero di giorni e la percentuale di spettanza.",
+            "Verifica che l'immobile sia la tua abitazione principale (residenza).",
+            "Controlla il calcolo della detrazione e invia la dichiarazione entro la scadenza.",
+        ],
+        "critical_fields": [
+            {"field": "Rigo E71 vs E72", "note": "E72 è riservato ai giovani 20-31 anni con reddito basso ed è più vantaggioso; non cumulabile con E71 per lo stesso periodo."},
+            {"field": "Giorni e percentuale", "note": "Indica i giorni in cui l'immobile è stata abitazione principale e la % se il contratto è cointestato (es. 50%)."},
+            {"field": "Abitazione principale", "note": "La detrazione spetta solo per la casa dove hai la residenza, non per seconde case o affitti brevi."},
+            {"field": "Reddito complessivo", "note": "L'importo detraibile diminuisce oltre 15.493,71 € e si azzera oltre 30.987,41 €."},
+        ],
+        "apply_url": "https://www.agenziaentrate.gov.it",
+        "deadlines_requirements": [
+            "730 precompilato: invio di norma entro il 30 settembre.",
+            "Il contratto deve essere regolarmente registrato.",
+            "Serve avere la residenza nell'immobile affittato.",
+        ],
+        "extra_info": [
+            {"title": "Tipi di contratto e cosa cambia", "text": "Canone LIBERO (4+4 anni): detrazione base per inquilini. Canone CONCORDATO (3+2, art. 2 c.3): detrazione più alta perché il canone è calmierato. Contratto TRANSITORIO o per STUDENTI fuori sede: esistono detrazioni dedicate (rigo E72/E71 con codici specifici). Verifica sempre quale codice usare in base al tuo contratto."},
+            {"title": "Se il contratto è cointestato", "text": "Ogni intestatario detrae la propria quota. Se pagate in due al 50%, ciascuno indica il 50% nel proprio 730."},
+            {"title": "Cumulabilità", "text": "Non puoi sommare due detrazioni affitto diverse per lo stesso periodo: scegli quella più conveniente (di solito quella per giovani se hai i requisiti)."},
+        ],
+    },
+    "assegno-unico": {
+        "title": "Assegno Unico per Figli a Carico",
+        "intro": "L'Assegno Unico e Universale è un contributo mensile INPS per ogni figlio a carico. Si richiede una sola volta con domanda telematica; poi si rinnova/aggiorna l'ISEE.",
+        "documents": [
+            "SPID livello 2, CIE 3.0 o CNS del richiedente",
+            "ISEE in corso di validità (DSU aggiornata)",
+            "Codici fiscali di entrambi i genitori e dei figli",
+            "IBAN del richiedente (conto intestato/cointestato)",
+            "Eventuale documentazione di disabilità del figlio",
+        ],
+        "steps": [
+            "Aggiorna o presenta la DSU per avere un ISEE valido (tramite INPS o CAF).",
+            "Accedi al portale INPS al servizio 'Assegno unico e universale per i figli a carico' con SPID/CIE.",
+            "Seleziona 'Nuova domanda' e verifica i dati anagrafici del nucleo.",
+            "Inserisci i figli a carico e i relativi codici fiscali.",
+            "Indica l'IBAN su cui ricevere l'accredito (o scegli il bonifico domiciliato).",
+            "Conferma e invia la domanda; annota il numero di protocollo.",
+        ],
+        "critical_fields": [
+            {"field": "IBAN del beneficiario", "note": "Deve essere intestato o cointestato a chi presenta la domanda, altrimenti il pagamento viene sospeso."},
+            {"field": "ISEE valido", "note": "Senza ISEE aggiornato ricevi solo l'importo minimo; aggiornalo entro il 28 febbraio per gli arretrati da marzo."},
+            {"field": "Ripartizione tra genitori", "note": "Puoi scegliere il 100% a un genitore o il 50% ciascuno: incide su chi riceve l'accredito."},
+            {"field": "Maggiorazioni", "note": "Indica correttamente disabilità, figli under 1, madri under 21 o nuclei numerosi per ottenere le maggiorazioni."},
+        ],
+        "apply_url": "https://www.inps.it/it/it/dettaglio-scheda.it.schede-servizio-strumento.schede-servizi.assegno-unico-e-universale-per-i-figli-a-carico-55984.assegno-unico-e-universale-per-i-figli-a-carico.html",
+        "deadlines_requirements": [
+            "Domanda presentabile tutto l'anno; le domande accolte si rinnovano automaticamente.",
+            "Per gli arretrati da marzo, aggiorna l'ISEE entro il 28 febbraio.",
+            "Spetta per figli fino a 21 anni (senza limiti se con disabilità).",
+        ],
+        "extra_info": [
+            {"title": "Serve rifare la domanda ogni anno?", "text": "No: dal 2023 le domande accolte proseguono in automatico. Devi però aggiornare l'ISEE ogni anno per non ricevere solo l'importo minimo."},
+            {"title": "Figli maggiorenni", "text": "Tra 18 e 21 anni l'assegno spetta se il figlio studia, fa un tirocinio, lavora con basso reddito o è in cerca di lavoro: va indicata la condizione."},
+            {"title": "Separati o divorziati", "text": "In caso di affido condiviso l'assegno è ripartito al 50% salvo diverso accordo; entrambi i genitori possono vedere/gestire la domanda."},
+        ],
+    },
+    "bonus-affitto-lombardia": {
+        "title": "Bonus Affitto Lombardia",
+        "intro": "Contributo di Regione Lombardia (fondi gestiti da Comuni/ALER) per aiutare gli inquilini in difficoltà a pagare l'affitto della prima casa. Si richiede tramite bando su Bandi Online.",
+        "documents": [
+            "SPID/CIE del richiedente",
+            "ISEE ordinario in corso di validità",
+            "Contratto di locazione registrato (uso abitativo, prima casa)",
+            "Ricevute/bonifici dei canoni e delle eventuali morosità",
+            "Documento di identità e permesso di soggiorno (se extra UE)",
+            "Attestazione di residenza in Lombardia da almeno il periodo richiesto dal bando",
+        ],
+        "steps": [
+            "Verifica l'apertura del bando sul portale Bandi Online di Regione Lombardia (o chiedi al tuo Comune/ALER).",
+            "Registrati/accedi a Bandi Online con SPID o CIE.",
+            "Cerca la misura 'Contributo per l'affitto' / 'sostegno alla locazione' aperta per la tua annualità.",
+            "Compila l'anagrafica e allega ISEE, contratto registrato e ricevute dei pagamenti.",
+            "Indica l'IBAN per l'accredito e la situazione di morosità (se presente).",
+            "Invia la domanda entro la scadenza del bando e conserva la ricevuta di protocollo.",
+        ],
+        "critical_fields": [
+            {"field": "Residenza in Lombardia", "note": "L'immobile deve essere la tua abitazione principale in Lombardia; molti bandi richiedono residenza da un certo periodo."},
+            {"field": "Soglia ISEE del bando", "note": "Ogni edizione fissa un tetto ISEE (spesso ~ 26.000 € o inferiore): controlla il valore esatto del bando in corso."},
+            {"field": "Contratto registrato", "note": "Il contratto deve essere regolarmente registrato; gli affitti in nero non danno diritto al contributo."},
+            {"field": "Non cumulabilità", "note": "Spesso non è cumulabile con Assegno di Inclusione o altri contributi affitto per lo stesso periodo: leggi il bando."},
+        ],
+        "apply_url": "https://www.bandi.regione.lombardia.it",
+        "deadlines_requirements": [
+            "Bando periodico: valido solo nelle finestre di apertura (spesso in autunno).",
+            "Fondi limitati: conta l'ordine di arrivo o la graduatoria per ISEE.",
+            "Serve contratto registrato e residenza nell'immobile in Lombardia.",
+        ],
+        "extra_info": [
+            {"title": "Bando regionale vs comunale", "text": "Regione Lombardia stanzia i fondi ma spesso sono i Comuni o ALER a pubblicare il bando operativo. Controlla entrambi i canali per non perdere la finestra."},
+            {"title": "Tipi di contratto ammessi", "text": "Di norma sono ammessi contratti a canone libero (4+4) e concordato (3+2) a uso abitativo. Sono esclusi comodati, alloggi ERP/case popolari a canone sociale e contratti non registrati."},
+            {"title": "Morosità incolpevole", "text": "Alcune edizioni prevedono una linea specifica per chi non riesce a pagare per perdita del lavoro o riduzione del reddito: richiede documentazione aggiuntiva sulla causa della morosità."},
+        ],
+    },
 }
 
 def public_bonus(b: dict, profile: Optional[Profile] = None) -> dict:
     out = {k: v for k, v in b.items() if k != "rule"}
     out["requirement"] = REQUIREMENTS.get(b["id"], "Requisiti specifici non soddisfatti dal tuo profilo.")
+    out["has_guide"] = b["id"] in GUIDES
     if profile is not None:
         out["eligible"] = bool(b["rule"](profile))
     return out
@@ -506,6 +639,13 @@ async def root():
 @api_router.get("/bonuses")
 async def list_bonuses():
     return {"bonuses": [public_bonus(b) for b in BONUSES]}
+
+@api_router.get("/bonus/{bonus_id}/guide")
+async def get_guide(bonus_id: str):
+    guide = GUIDES.get(bonus_id)
+    if not guide:
+        raise HTTPException(status_code=404, detail="Guida non disponibile per questo bonus")
+    return guide
 
 @api_router.get("/bonus/{bonus_id}")
 async def get_bonus(bonus_id: str):
