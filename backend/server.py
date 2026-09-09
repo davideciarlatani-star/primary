@@ -529,6 +529,30 @@ GUIDES = {
             "Verifica che l'immobile sia la tua abitazione principale (residenza).",
             "Controlla il calcolo della detrazione e invia la dichiarazione entro la scadenza.",
         ],
+        "steps_help": [
+            {"images": [
+                {"caption": "Home del sito Agenzia delle Entrate: pulsante 'Accedi all'area riservata' in alto a destra.", "url": ""},
+                {"caption": "Schermata di scelta del metodo di accesso: SPID, CIE o CNS.", "url": ""},
+            ]},
+            {"images": [
+                {"caption": "Menu del 730 precompilato con l'elenco dei quadri: evidenziato il 'Quadro E - Oneri e spese'.", "url": ""},
+                {"caption": "Sezione 'Detrazioni per canoni di locazione' all'interno del Quadro E.", "url": ""},
+            ]},
+            {"images": [
+                {"caption": "Elenco righi E71 ed E72 con descrizione: differenza tra inquilini abitazione principale e giovani under 31.", "url": ""},
+            ]},
+            {"images": [
+                {"caption": "Campo 'Codice' del rigo con il menu a tendina dei tipi di detrazione.", "url": ""},
+                {"caption": "Campi 'Numero giorni' e 'Percentuale di spettanza' da compilare.", "url": ""},
+            ]},
+            {"images": [
+                {"caption": "Riepilogo dati anagrafici con l'indirizzo di residenza che coincide con l'immobile in affitto.", "url": ""},
+            ]},
+            {"images": [
+                {"caption": "Schermata del ricalcolo dell'imposta con l'importo della detrazione applicata.", "url": ""},
+                {"caption": "Pulsante 'Invia la dichiarazione' e schermata della ricevuta di trasmissione.", "url": ""},
+            ]},
+        ],
         "critical_fields": [
             {"field": "Rigo E71 vs E72", "note": "E72 è riservato ai giovani 20-31 anni con reddito basso ed è più vantaggioso; non cumulabile con E71 per lo stesso periodo."},
             {"field": "Giorni e percentuale", "note": "Indica i giorni in cui l'immobile è stata abitazione principale e la % se il contratto è cointestato (es. 50%)."},
@@ -564,6 +588,30 @@ GUIDES = {
             "Inserisci i figli a carico e i relativi codici fiscali.",
             "Indica l'IBAN su cui ricevere l'accredito (o scegli il bonifico domiciliato).",
             "Conferma e invia la domanda; annota il numero di protocollo.",
+        ],
+        "steps_help": [
+            {"images": [
+                {"caption": "Portale INPS: servizio 'ISEE / DSU precompilata' per presentare o aggiornare la DSU.", "url": ""},
+                {"caption": "Attestazione ISEE in corso di validità con il valore del nucleo familiare.", "url": ""},
+            ]},
+            {"images": [
+                {"caption": "Ricerca nel portale INPS del servizio 'Assegno unico e universale per i figli a carico'.", "url": ""},
+                {"caption": "Schermata di login INPS con SPID, CIE o CNS.", "url": ""},
+            ]},
+            {"images": [
+                {"caption": "Pulsante 'Nuova domanda' nella schermata del servizio Assegno Unico.", "url": ""},
+                {"caption": "Riepilogo dei dati anagrafici del nucleo familiare da confermare.", "url": ""},
+            ]},
+            {"images": [
+                {"caption": "Sezione 'Figli a carico' con il pulsante per aggiungere un figlio e inserire il codice fiscale.", "url": ""},
+            ]},
+            {"images": [
+                {"caption": "Campo IBAN per l'accredito e opzione alternativa 'bonifico domiciliato'.", "url": ""},
+            ]},
+            {"images": [
+                {"caption": "Schermata di riepilogo finale con il pulsante 'Invia domanda'.", "url": ""},
+                {"caption": "Ricevuta con il numero di protocollo della domanda inviata.", "url": ""},
+            ]},
         ],
         "critical_fields": [
             {"field": "IBAN del beneficiario", "note": "Deve essere intestato o cointestato a chi presenta la domanda, altrimenti il pagamento viene sospeso."},
@@ -601,6 +649,30 @@ GUIDES = {
             "Compila l'anagrafica e allega ISEE, contratto registrato e ricevute dei pagamenti.",
             "Indica l'IBAN per l'accredito e la situazione di morosità (se presente).",
             "Invia la domanda entro la scadenza del bando e conserva la ricevuta di protocollo.",
+        ],
+        "steps_help": [
+            {"images": [
+                {"caption": "Home di Bandi Online Regione Lombardia con la barra di ricerca dei bandi.", "url": ""},
+                {"caption": "Scheda del bando 'Contributo per l'affitto' con lo stato 'Aperto'.", "url": ""},
+            ]},
+            {"images": [
+                {"caption": "Pulsante 'Accedi' di Bandi Online con la scelta del metodo SPID/CIE.", "url": ""},
+            ]},
+            {"images": [
+                {"caption": "Elenco delle misure aperte con evidenziato 'sostegno alla locazione / contributo affitto'.", "url": ""},
+            ]},
+            {"images": [
+                {"caption": "Modulo anagrafico del richiedente da compilare.", "url": ""},
+                {"caption": "Sezione allegati: caricamento di ISEE, contratto registrato e ricevute di pagamento.", "url": ""},
+            ]},
+            {"images": [
+                {"caption": "Campo IBAN per l'accredito del contributo.", "url": ""},
+                {"caption": "Sezione per dichiarare l'eventuale morosità e i mesi di canone non pagati.", "url": ""},
+            ]},
+            {"images": [
+                {"caption": "Pulsante 'Invia domanda' con l'indicazione della scadenza del bando.", "url": ""},
+                {"caption": "Ricevuta di protocollo scaricabile in PDF.", "url": ""},
+            ]},
         ],
         "critical_fields": [
             {"field": "Residenza in Lombardia", "note": "L'immobile deve essere la tua abitazione principale in Lombardia; molti bandi richiedono residenza da un certo periodo."},
