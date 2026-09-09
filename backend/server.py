@@ -207,8 +207,8 @@ BONUSES = [
         "category": "Salute",
         "icon": "medkit",
         "short": "Contributo per sedute di psicoterapia.",
-        "description": "Contributo per sostenere le spese di sedute di psicoterapia presso professionisti iscritti all'albo, con importo variabile in base all'ISEE.",
-        "amount": "fino a 1.500 € (ISEE < 15.000 €)",
+        "description": "Contributo per sostenere le spese di sedute di psicoterapia presso professionisti iscritti all'albo. Copre fino a 50 € a seduta, con un tetto complessivo che varia in base all'ISEE: fino a 1.500 € (ISEE < 15.000 €), 1.000 € (ISEE 15.000-30.000 €) o 500 € (ISEE 30.000-50.000 €).",
+        "amount": "fino a 1.500 € (max 50 €/seduta, in base all'ISEE)",
         "deadline": "2026-11-30",
         "deadline_note": "Domanda nella finestra annuale INPS, fino a esaurimento fondi.",
         "how": "Domanda online INPS con SPID/CIE nella finestra prevista.",
@@ -492,7 +492,7 @@ REQUIREMENTS = {
     "bonus-affitto-giovani": "Serve avere meno di 31 anni, essere in affitto e reddito basso.",
     "bonus-ristrutturazioni": "Serve essere proprietari di un immobile e presentare la dichiarazione.",
     "bonus-elettrodomestici": "Disponibile per tutti i residenti.",
-    "bonus-psicologo": "Serve un ISEE non superiore a 40.000 €.",
+    "bonus-psicologo": "Serve un ISEE in corso di validità non superiore a 50.000 €.",
     "carta-cultura-giovani": "Serve avere 18 anni con ISEE entro 35.000 €.",
     "bonus-mamme": "Serve essere lavoratrice/lavoratore con almeno 2 figli.",
     "detrazione-spese-mediche": "Serve presentare la dichiarazione dei redditi.",
@@ -655,42 +655,55 @@ def build_guide(b: dict) -> dict:
         channel = "generic"
 
     docs = {
-        "tax": ["SPID/CIE o credenziali per l'Agenzia delle Entrate", "Fatture, ricevute e bonifici delle spese sostenute", "Certificazione Unica (CU) e altri redditi", "Codice fiscale tuo e dei familiari a carico"],
-        "inps": ["SPID livello 2, CIE 3.0 o CNS", "ISEE in corso di validità (DSU aggiornata)", "Codici fiscali del nucleo familiare", "IBAN intestato o cointestato al richiedente"],
-        "sportello": ["Documento d'identità valido", "ISEE in corso di validità", "Codice fiscale", "Documentazione specifica richiesta dallo sportello/bando"],
-        "portale": ["SPID o CIE per l'accesso al portale", "ISEE in corso di validità (se richiesto)", "Documentazione a supporto (contratto, ricevute, ecc.)", "IBAN per l'eventuale accredito"],
-        "generic": ["Documento d'identità e codice fiscale", "ISEE in corso di validità (se previsto)", "Documentazione a supporto della richiesta"],
+        "tax": ["SPID/CIE o credenziali per l'area riservata dell'Agenzia delle Entrate", "Fatture, ricevute, scontrini parlanti e bonifici delle spese sostenute nell'anno", "Certificazione Unica (CU) e documentazione degli altri redditi", "Codice fiscale tuo e dei familiari a carico collegati alla spesa", "Eventuale documentazione che attesti il diritto (es. contratto, prescrizione medica)"],
+        "inps": ["SPID livello 2, CIE 3.0 o CNS del richiedente", "ISEE in corso di validità (presenta o aggiorna la DSU)", "Codici fiscali di tutti i componenti del nucleo familiare", "IBAN di un conto intestato o cointestato al richiedente", "Eventuale documentazione specifica (certificazione di disabilità, stato di disoccupazione, ecc.)"],
+        "sportello": ["Documento d'identità valido e codice fiscale/tessera sanitaria", "ISEE in corso di validità", "Modulo di domanda fornito dall'ente (Comune/Poste/servizi sociali)", "Documentazione a supporto richiesta dal bando (contratto, ricevute, relazione dei servizi sociali)", "IBAN per l'eventuale accredito del contributo"],
+        "portale": ["SPID o CIE per l'accesso al portale dedicato", "ISEE in corso di validità (se richiesto dal bando)", "Documentazione a supporto (contratto registrato, ricevute, fatture d'acquisto)", "IBAN per l'accredito del contributo/voucher", "Documento d'identità (per stranieri anche permesso di soggiorno)"],
+        "generic": ["Documento d'identità e codice fiscale", "ISEE in corso di validità (se previsto)", "Documentazione a supporto della richiesta", "IBAN per l'eventuale accredito"],
     }[channel]
 
     steps = {
-        "tax": ["Recupera i documenti di spesa dell'anno di riferimento.", "Accedi al 730 precompilato con SPID/CIE o rivolgiti a un CAF/commercialista.", "Vai nel Quadro E - Oneri e spese e individua la voce corretta.", "Inserisci gli importi e le quote di spettanza.", "Verifica il calcolo della detrazione e invia la dichiarazione entro la scadenza."],
-        "inps": ["Assicurati di avere un ISEE valido (aggiorna la DSU se necessario).", "Accedi al portale INPS con SPID/CIE al servizio dedicato.", "Seleziona 'Nuova domanda' e verifica i dati del nucleo.", "Compila i campi richiesti e indica l'IBAN per l'accredito.", "Invia la domanda e conserva il numero di protocollo."],
-        "sportello": ["Verifica requisiti e finestra di apertura presso il Comune/sportello.", "Prepara ISEE, documento d'identità e la modulistica richiesta.", "Compila il modulo di domanda (anche con l'aiuto di CAF/patronato).", "Consegna la domanda e allega tutta la documentazione.", "Conserva la ricevuta di protocollo della domanda."],
-        "portale": ["Verifica l'apertura del bando/servizio sul portale dedicato.", "Registrati o accedi con SPID/CIE.", "Compila l'anagrafica e allega i documenti richiesti.", "Indica l'IBAN e conferma i dati inseriti.", "Invia la domanda entro la scadenza e salva la ricevuta."],
-        "generic": ["Verifica di possedere i requisiti richiesti.", "Raccogli la documentazione necessaria.", "Presenta la richiesta secondo il canale indicato.", "Conserva la ricevuta o il protocollo della domanda."],
+        "tax": ["Raccogli tutti i documenti di spesa dell'anno d'imposta di riferimento e verifica che siano tracciabili (pagamenti con mezzi tracciabili dove richiesto).", "Accedi al 730 precompilato con SPID/CIE, oppure affidati a un CAF o commercialista.", "Controlla i dati precompilati e apri il Quadro E - Oneri e spese.", "Individua il rigo corretto per questa agevolazione e inserisci gli importi.", "Indica la quota di spettanza se la spesa è cointestata (es. 50%).", "Verifica il ricalcolo dell'imposta e il rimborso/risparmio stimato.", "Invia la dichiarazione entro la scadenza e conserva la ricevuta di trasmissione."],
+        "inps": ["Verifica di avere un ISEE valido: se scaduto, presenta una nuova DSU (INPS o CAF).", "Accedi al portale INPS con SPID/CIE e cerca il servizio dedicato a questo bonus.", "Seleziona 'Nuova domanda' e controlla i dati anagrafici del nucleo.", "Compila tutti i campi richiesti e indica le eventuali condizioni particolari (disabilità, figli, ecc.).", "Inserisci l'IBAN per l'accredito o scegli un'altra modalità di pagamento.", "Controlla il riepilogo, invia la domanda e salva il numero di protocollo.", "Monitora lo stato della domanda nella sezione 'Le mie domande'."],
+        "sportello": ["Verifica requisiti, importi e finestra di apertura presso il Comune o lo sportello competente.", "Richiedi o scarica il modulo di domanda ufficiale.", "Prepara ISEE, documento d'identità e la documentazione richiesta dal bando.", "Compila il modulo, se necessario con l'aiuto di un CAF o patronato (gratuito).", "Consegna la domanda allo sportello o inviala secondo le modalità indicate.", "Fatti rilasciare e conserva la ricevuta/protocollo della domanda.", "Verifica l'esito o la posizione in graduatoria nei tempi comunicati dall'ente."],
+        "portale": ["Verifica l'apertura del bando/servizio e leggi con attenzione il regolamento.", "Registrati o accedi al portale con SPID/CIE.", "Compila l'anagrafica e verifica i dati importati automaticamente.", "Allega i documenti richiesti (contratto, ricevute, ISEE) nei formati previsti.", "Indica l'IBAN e conferma tutti i dati inseriti.", "Invia la domanda entro la scadenza e scarica la ricevuta di protocollo.", "Controlla periodicamente lo stato della pratica e le eventuali integrazioni richieste."],
+        "generic": ["Verifica di possedere tutti i requisiti richiesti.", "Raccogli la documentazione necessaria.", "Presenta la richiesta secondo il canale indicato.", "Conserva la ricevuta o il protocollo della domanda.", "Verifica l'esito nei tempi previsti."],
     }[channel]
 
     critical = [
         {"field": "Requisito principale", "note": req or "Controlla di rientrare nei requisiti indicati per questo aiuto."},
-        {"field": "ISEE aggiornato", "note": "Molti aiuti richiedono un ISEE valido: aggiorna la DSU a inizio anno per non perdere importi."},
+        {"field": "ISEE aggiornato", "note": "Molti aiuti richiedono un ISEE valido e aggiornato all'anno in corso: rifai la DSU a inizio anno per non perdere importi o arretrati."},
+        {"field": "Importo spettante", "note": f"Per questo aiuto è previsto: {b.get('amount','importo variabile')}. L'importo effettivo può dipendere da ISEE, reddito e composizione del nucleo."},
     ]
     if channel in ("inps", "portale"):
-        critical.append({"field": "IBAN del beneficiario", "note": "Deve essere intestato o cointestato a chi presenta la domanda, altrimenti l'accredito si blocca."})
+        critical.append({"field": "IBAN del beneficiario", "note": "Deve essere intestato o cointestato a chi presenta la domanda: un IBAN di terzi blocca l'accredito."})
     if channel == "tax":
-        critical.append({"field": "Quota di spettanza", "note": "Se la spesa è cointestata, indica solo la tua quota (es. 50%)."})
+        critical.append({"field": "Quota di spettanza", "note": "Se la spesa è cointestata, indica solo la tua quota (es. 50%). Usa il rigo esatto per non perdere la detrazione."})
+        critical.append({"field": "Pagamenti tracciabili", "note": "Molte detrazioni al 19% richiedono pagamento tracciabile (bancomat, bonifico, carta): i contanti non danno diritto allo sconto."})
+    if channel == "sportello":
+        critical.append({"field": "Rispetto della graduatoria", "note": "I fondi sono spesso limitati: presenta la domanda appena il bando apre e completa tutti gli allegati per non essere escluso."})
     critical.append({"field": "Scadenza", "note": b.get("deadline_note", "Rispetta la finestra temporale indicata.")})
+
+    channel_tip = {
+        "tax": {"title": "730 precompilato o ordinario?", "text": "Il 730 precompilato è più veloce perché molte spese sono già inserite dal Sistema Tessera Sanitaria; controlla comunque che ci siano tutte. Se accetti il precompilato senza modifiche, eviti i controlli documentali. In caso di dubbi, un CAF o commercialista può presentarlo per te."},
+        "inps": {"title": "Serve rifare la domanda ogni anno?", "text": "Dipende dalla misura: alcune si rinnovano in automatico, altre richiedono una nuova domanda a ogni annualità o al rinnovo dell'ISEE. Controlla nella sezione 'Le mie domande' dell'INPS lo stato e le scadenze di rinnovo."},
+        "sportello": {"title": "Assistenza gratuita", "text": "CAF e patronati offrono assistenza gratuita per compilare e inviare la domanda e per calcolare l'ISEE. Porta con te tutti i documenti in originale e copia per velocizzare la pratica."},
+        "portale": {"title": "Fondi a esaurimento", "text": "Molti bonus su piattaforma funzionano fino a esaurimento fondi o in ordine cronologico: prepara i documenti in anticipo e invia la domanda appena il servizio apre."},
+        "generic": {"title": "Come farti aiutare", "text": "In caso di dubbi puoi rivolgerti a un CAF o patronato per assistenza gratuita nella presentazione della domanda."},
+    }[channel]
 
     return {
         "title": b["name"],
-        "intro": f"{b['description']} {b.get('declaration','')}",
+        "intro": f"{b['description']} {b.get('declaration','')} Importo previsto: {b.get('amount','variabile')}.",
         "documents": docs,
         "steps": steps,
         "critical_fields": critical,
         "apply_url": b.get("apply_url", ""),
-        "deadlines_requirements": [b.get("deadline_note", ""), req or "Verifica i requisiti sul sito dell'ente erogatore."],
+        "deadlines_requirements": [f"Scadenza: {b.get('deadline_note','')}", f"Requisito: {req}" if req else "Verifica i requisiti sul sito dell'ente erogatore.", "Conserva sempre la ricevuta di protocollo della domanda."],
         "extra_info": [
+            channel_tip,
             {"title": "Dove e come presentare", "text": b.get("apply_note") or b.get("how", "")},
-            {"title": "Ente erogatore", "text": f"La misura è gestita da: {b.get('source','')}. In caso di dubbi puoi rivolgerti a un CAF o patronato per assistenza gratuita."},
+            {"title": "Ente erogatore e assistenza", "text": f"La misura è gestita da: {b.get('source','')}. Per assistenza gratuita puoi rivolgerti a un CAF o patronato, che possono anche calcolare l'ISEE e inviare la domanda per te."},
         ],
     }
 
