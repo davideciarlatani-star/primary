@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import {
-  View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator, RefreshControl,
+  View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator, RefreshControl, TextInput,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Image } from "expo-image";
@@ -25,6 +25,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [aiLoading, setAiLoading] = useState(false);
   const [error, setError] = useState(false);
+  const [query, setQuery] = useState("");
 
   const load = useCallback(async () => {
     if (!profile) return;
@@ -73,12 +74,24 @@ export default function Home() {
     );
   }
 
+  const q = query.trim().toLowerCase();
+  const searching = q.length > 0;
+  const matches = (b: Bonus) => {
+    const hay = [b.name, b.short, b.description, b.category, b.amount, b.how, b.source, b.requirement]
+      .filter(Boolean).join(" ").toLowerCase();
+    return hay.includes(q);
+  };
+  const filteredEligible = searching ? eligible.filter(matches) : eligible;
+  const filteredOthers = searching ? others.filter(matches) : others;
+  const resultCount = filteredEligible.length + filteredOthers.length;
+
   return (
     <View style={styles.container} testID="home-screen">
       <ScrollView
         contentContainerStyle={{ paddingBottom: spacing["3xl"] }}
         refreshControl={<RefreshControl refreshing={false} onRefresh={load} tintColor={colors.brandPrimary} />}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
         <View style={styles.hero}>
           <Image source={{ uri: HERO }} style={StyleSheet.absoluteFill} contentFit="cover" transition={300} />
@@ -91,74 +104,115 @@ export default function Home() {
         </View>
 
         <View style={styles.body}>
-          {/* AI card */}
-          <View style={styles.aiCard} testID="ai-card">
-            <View style={styles.aiHeader}>
-              <View style={styles.aiIcon}>
-                <Ionicons name="sparkles" size={18} color={colors.accentOrange} />
-              </View>
-              <Text style={styles.aiTitle}>Assistente AI</Text>
-              {ai && (
-                <Pressable onPress={() => setAiOpen((v) => !v)} hitSlop={10} style={styles.aiToggle} testID="ai-toggle">
-                  <Ionicons name={aiOpen ? "chevron-up" : "chevron-down"} size={20} color={colors.onSurfaceTertiary} />
-                </Pressable>
-              )}
-            </View>
-            {ai ? (
-              aiOpen ? (
-                <>
-                  <Text style={styles.aiHeadline}>{ai.headline}</Text>
-                  <Text style={styles.aiSummary}>{ai.summary}</Text>
-                  {ai.tips?.map((t: string, i: number) => (
-                    <View key={i} style={styles.tipRow}>
-                      <Ionicons name="checkmark-circle" size={16} color={colors.success} />
-                      <Text style={styles.tipText}>{t}</Text>
-                    </View>
-                  ))}
-                  {ai.priority && (
-                    <View style={styles.priorityBadge}>
-                      <Ionicons name="flag" size={14} color={colors.onWarning} />
-                      <Text style={styles.priorityText}>Priorità: {ai.priority}</Text>
-                    </View>
-                  )}
-                </>
-              ) : (
-                <Pressable onPress={() => setAiOpen(true)} testID="ai-reopen">
-                  <Text style={styles.aiHeadlineCollapsed} numberOfLines={1}>{ai.headline}</Text>
-                  <Text style={styles.aiCollapsedHint}>{"Tocca per rivedere l'analisi"}</Text>
-                </Pressable>
-              )
-            ) : (
-              <>
-                <Text style={styles.aiSummary}>{"Ricevi un'analisi personalizzata e consigli su come massimizzare i tuoi aiuti."}</Text>
-                <Pressable style={styles.aiBtn} onPress={runAi} disabled={aiLoading} testID="ai-suggest-btn">
-                  {aiLoading ? (
-                    <ActivityIndicator color={colors.onBrandPrimary} />
-                  ) : (
-                    <>
-                      <Ionicons name="sparkles" size={18} color={colors.onBrandPrimary} />
-                      <Text style={styles.aiBtnText}>Scopri i tuoi bonus</Text>
-                    </>
-                  )}
-                </Pressable>
-              </>
+          {/* Search bar */}
+          <View style={styles.searchBar} testID="bonus-search">
+            <Ionicons name="search" size={18} color={colors.onSurfaceTertiary} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Cerca un bonus per parola chiave..."
+              placeholderTextColor={colors.onSurfaceTertiary}
+              value={query}
+              onChangeText={setQuery}
+              returnKeyType="search"
+              autoCorrect={false}
+              testID="bonus-search-input"
+            />
+            {searching && (
+              <Pressable onPress={() => setQuery("")} hitSlop={10} testID="bonus-search-clear">
+                <Ionicons name="close-circle" size={20} color={colors.onSurfaceTertiary} />
+              </Pressable>
             )}
           </View>
 
-          <Text style={styles.sectionTitle}>Hai diritto a</Text>
-          {eligible.length === 0 ? (
-            <View style={styles.emptyBox} testID="home-empty">
-              <Ionicons name="folder-open-outline" size={40} color={colors.onSurfaceTertiary} />
-              <Text style={styles.emptyText}>Nessun bonus rilevato. Aggiorna il tuo profilo per scoprire nuove agevolazioni.</Text>
-            </View>
-          ) : (
-            eligible.map((b) => <BonusCard key={b.id} bonus={b} onPress={() => router.push(`/bonus/${b.id}`)} />)
-          )}
-
-          {others.length > 0 && (
+          {searching ? (
             <>
-              <Text style={styles.sectionTitle}>Altri aiuti disponibili</Text>
-              {others.map((b) => <BonusCard key={b.id} bonus={b} muted onPress={() => router.push(`/bonus/${b.id}`)} />)}
+              <Text style={styles.sectionTitle}>
+                {resultCount > 0 ? `Risultati (${resultCount})` : "Nessun risultato"}
+              </Text>
+              {resultCount === 0 ? (
+                <View style={styles.emptyBox} testID="search-empty">
+                  <Ionicons name="search-outline" size={40} color={colors.onSurfaceTertiary} />
+                  <Text style={styles.emptyText}>{`Nessun bonus trovato per "${query.trim()}". Prova con un'altra parola chiave.`}</Text>
+                </View>
+              ) : (
+                <>
+                  {filteredEligible.map((b) => <BonusCard key={b.id} bonus={b} onPress={() => router.push(`/bonus/${b.id}`)} />)}
+                  {filteredOthers.map((b) => <BonusCard key={b.id} bonus={b} muted onPress={() => router.push(`/bonus/${b.id}`)} />)}
+                </>
+              )}
+            </>
+          ) : (
+            <>
+              {/* AI card */}
+              <View style={styles.aiCard} testID="ai-card">
+                <View style={styles.aiHeader}>
+                  <View style={styles.aiIcon}>
+                    <Ionicons name="sparkles" size={18} color={colors.accentOrange} />
+                  </View>
+                  <Text style={styles.aiTitle}>Assistente AI</Text>
+                  {ai && (
+                    <Pressable onPress={() => setAiOpen((v) => !v)} hitSlop={10} style={styles.aiToggle} testID="ai-toggle">
+                      <Ionicons name={aiOpen ? "chevron-up" : "chevron-down"} size={20} color={colors.onSurfaceTertiary} />
+                    </Pressable>
+                  )}
+                </View>
+                {ai ? (
+                  aiOpen ? (
+                    <>
+                      <Text style={styles.aiHeadline}>{ai.headline}</Text>
+                      <Text style={styles.aiSummary}>{ai.summary}</Text>
+                      {ai.tips?.map((t: string, i: number) => (
+                        <View key={i} style={styles.tipRow}>
+                          <Ionicons name="checkmark-circle" size={16} color={colors.success} />
+                          <Text style={styles.tipText}>{t}</Text>
+                        </View>
+                      ))}
+                      {ai.priority && (
+                        <View style={styles.priorityBadge}>
+                          <Ionicons name="flag" size={14} color={colors.onWarning} />
+                          <Text style={styles.priorityText}>Priorità: {ai.priority}</Text>
+                        </View>
+                      )}
+                    </>
+                  ) : (
+                    <Pressable onPress={() => setAiOpen(true)} testID="ai-reopen">
+                      <Text style={styles.aiHeadlineCollapsed} numberOfLines={1}>{ai.headline}</Text>
+                      <Text style={styles.aiCollapsedHint}>{"Tocca per rivedere l'analisi"}</Text>
+                    </Pressable>
+                  )
+                ) : (
+                  <>
+                    <Text style={styles.aiSummary}>{"Ricevi un'analisi personalizzata e consigli su come massimizzare i tuoi aiuti."}</Text>
+                    <Pressable style={styles.aiBtn} onPress={runAi} disabled={aiLoading} testID="ai-suggest-btn">
+                      {aiLoading ? (
+                        <ActivityIndicator color={colors.onBrandPrimary} />
+                      ) : (
+                        <>
+                          <Ionicons name="sparkles" size={18} color={colors.onBrandPrimary} />
+                          <Text style={styles.aiBtnText}>Scopri i tuoi bonus</Text>
+                        </>
+                      )}
+                    </Pressable>
+                  </>
+                )}
+              </View>
+
+              <Text style={styles.sectionTitle}>Hai diritto a</Text>
+              {eligible.length === 0 ? (
+                <View style={styles.emptyBox} testID="home-empty">
+                  <Ionicons name="folder-open-outline" size={40} color={colors.onSurfaceTertiary} />
+                  <Text style={styles.emptyText}>Nessun bonus rilevato. Aggiorna il tuo profilo per scoprire nuove agevolazioni.</Text>
+                </View>
+              ) : (
+                eligible.map((b) => <BonusCard key={b.id} bonus={b} onPress={() => router.push(`/bonus/${b.id}`)} />)
+              )}
+
+              {others.length > 0 && (
+                <>
+                  <Text style={styles.sectionTitle}>Altri aiuti disponibili</Text>
+                  {others.map((b) => <BonusCard key={b.id} bonus={b} muted onPress={() => router.push(`/bonus/${b.id}`)} />)}
+                </>
+              )}
             </>
           )}
         </View>
@@ -207,6 +261,8 @@ const styles = StyleSheet.create({
   heroTitle: { color: "#fff", fontSize: 28, fontWeight: "800", marginBottom: spacing.xs },
   heroSub: { color: "rgba(255,255,255,0.85)", fontSize: 14, lineHeight: 20 },
   body: { padding: spacing.lg, gap: spacing.md },
+  searchBar: { flexDirection: "row", alignItems: "center", gap: spacing.sm, backgroundColor: colors.surface, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, paddingHorizontal: spacing.md, height: 48 },
+  searchInput: { flex: 1, fontSize: 15, color: colors.onSurface, paddingVertical: 0 },
   aiCard: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, gap: spacing.sm },
   aiHeader: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   aiIcon: { width: 32, height: 32, borderRadius: radius.sm, backgroundColor: colors.accentOrangeLight, alignItems: "center", justifyContent: "center" },
