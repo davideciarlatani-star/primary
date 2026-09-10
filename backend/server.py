@@ -796,6 +796,13 @@ async def get_bonus(bonus_id: str):
             return public_bonus(b)
     raise HTTPException(status_code=404, detail="Bonus non trovato")
 
+@api_router.post("/bonus/{bonus_id}/detail")
+async def get_bonus_detail(bonus_id: str, profile: Profile):
+    for b in BONUSES:
+        if b["id"] == bonus_id:
+            return public_bonus(b, profile)
+    raise HTTPException(status_code=404, detail="Bonus non trovato")
+
 @api_router.post("/match")
 async def match_bonuses(profile: Profile):
     eligible, others = [], []

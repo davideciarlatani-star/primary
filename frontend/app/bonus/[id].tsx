@@ -14,22 +14,23 @@ export default function BonusDetail() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { premium } = useProfile();
+  const { premium, profile } = useProfile();
   const [bonus, setBonus] = useState<Bonus | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [showCalPremium, setShowCalPremium] = useState(false);
 
   useEffect(() => {
     (async () => {
       try {
-        setBonus(await api.bonus(id));
+        setBonus(profile ? await api.bonusDetail(id, profile) : await api.bonus(id));
       } catch {
         setError(true);
       } finally {
         setLoading(false);
       }
     })();
-  }, [id]);
+  }, [id, profile]);
 
   if (loading) {
     return <View style={styles.center}><ActivityIndicator size="large" color={colors.brandPrimary} /></View>;
@@ -45,6 +46,17 @@ export default function BonusDetail() {
 
   const cat = categoryColors[bonus.category] || colors.brandPrimary;
   const d = new Date(bonus.deadline + "T00:00:00");
+  const notEligible = bonus.eligible === false;
+
+  const openGoogleCalendar = () => {
+    const start = bonus.deadline.replace(/-/g, "");
+    const endDate = new Date(bonus.deadline + "T00:00:00");
+    endDate.setDate(endDate.getDate() + 1);
+    const end = `${endDate.getFullYear()}${String(endDate.getMonth() + 1).padStart(2, "0")}${String(endDate.getDate()).padStart(2, "0")}`;
+    const text = encodeURIComponent(`Scadenza: ${bonus.name}`);
+    const details = encodeURIComponent(`Scadenza per la domanda di "${bonus.name}".\n${bonus.deadline_note}\n\nConsiglio: imposta un promemoria 30 giorni prima nelle notifiche dell'evento.`);
+    Linking.openURL(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${text}&dates=${start}/${end}&details=${details}`);
+  };
 
   const InfoBlock = ({ icon, title, text }: { icon: string; title: string; text: string }) => (
     <View style={styles.block} testID={`block-${title}`}>
@@ -65,6 +77,18 @@ export default function BonusDetail() {
       </View>
 
       <ScrollView contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing["3xl"], gap: spacing.md }} showsVerticalScrollIndicator={false}>
+        {notEligible && (
+          <View style={styles.blockedBanner} testID="detail-blocked-banner">
+            <View style={styles.blockedIcon}>
+              <Ionicons name="close-circle" size={22} color={colors.onError} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.blockedTitle}>Non puoi richiedere questo bonus</Text>
+              <Text style={styles.blockedText}>{bonus.requirement}</Text>
+            </View>
+          </View>
+        )}
+
         <View style={[styles.iconLarge, { backgroundColor: cat + "1A" }]}>
           <Ionicons name={bonus.icon as any} size={30} color={cat} />
         </View>
@@ -109,7 +133,44 @@ export default function BonusDetail() {
           )
         )}
 
-        <InfoBlock icon="information-circle" title="Descrizione" text={bonus.description} />        <InfoBlock icon="calendar" title="Scadenza" text={`${d.toLocaleDateString("it-IT")} — ${bonus.deadline_note}`} />
+        <InfoBlock icon="information-circle" title="Descrizione" text={bonus.description} />
+        <View style={styles.block} testID="block-scadenza">
+          <View style={styles.blockHeader}>
+            <Ionicons name="calendar" size={18} color={colors.brandPrimary} />
+            <Text style={styles.blockTitle}>Scadenza</Text>
+          </View>
+          <Text style={styles.blockText}>{`${d.toLocaleDateString("it-IT")} — ${bonus.deadline_note}`}</Text>
+
+          {premium ? (
+            <Pressable style={styles.calBtn} onPress={openGoogleCalendar} testID="detail-gcal-btn">
+              <Ionicons name="logo-google" size={18} color={colors.onBrandPrimary} />
+              <Text style={styles.calBtnText}>Aggiungi a Google Calendar</Text>
+            </Pressable>
+          ) : (
+            <>
+              <Pressable style={styles.calBtnFree} onPress={() => setShowCalPremium(true)} testID="detail-gcal-btn-locked">
+                <Ionicons name="logo-google" size={18} color={colors.brandPrimary} />
+                <Text style={styles.calBtnFreeText}>Aggiungi a Google Calendar</Text>
+                <Ionicons name="lock-closed" size={15} color={colors.accentOrange} />
+              </Pressable>
+              {showCalPremium && (
+                <Pressable style={styles.lockBanner} onPress={() => router.push("/(tabs)/profilo")} testID="detail-gcal-premium-lock">
+                  <View style={styles.lockIcon}>
+                    <Ionicons name="star" size={18} color={colors.onAccentOrange} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.lockTitle}>Funzione Premium</Text>
+                    <Text style={styles.lockText}>{"Salva la scadenza nel tuo Google Calendar. Passa a Premium per sbloccarla."}</Text>
+                  </View>
+                  <View style={styles.lockCta}>
+                    <Text style={styles.lockCtaText}>Passa a Premium</Text>
+                  </View>
+                </Pressable>
+              )}
+            </>
+          )}
+        </View>
+
         {bonus.declaration && (
           <InfoBlock icon="clipboard" title="Dichiarazione necessaria" text={bonus.declaration} />
         )}
@@ -174,6 +235,14 @@ const styles = StyleSheet.create({
   amountValue: { color: "#fff", fontSize: 22, fontWeight: "800", marginTop: 2 },
   eligibleBadge: { flexDirection: "row", alignItems: "center", gap: spacing.sm, backgroundColor: "#ECFDF5", borderRadius: radius.md, padding: spacing.md, borderWidth: 1, borderColor: "#A7F3D0" },
   eligibleText: { flex: 1, fontSize: 14, color: "#065F46", fontWeight: "500", lineHeight: 19 },
+  blockedBanner: { flexDirection: "row", alignItems: "center", gap: spacing.md, backgroundColor: "#FEF2F2", borderRadius: radius.md, padding: spacing.md, borderWidth: 1.5, borderColor: colors.error },
+  blockedIcon: { width: 40, height: 40, borderRadius: radius.sm, backgroundColor: colors.error, alignItems: "center", justifyContent: "center" },
+  blockedTitle: { fontSize: 15, fontWeight: "800", color: "#991B1B" },
+  blockedText: { fontSize: 13, color: "#991B1B", lineHeight: 18, marginTop: 2 },
+  calBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: spacing.sm, backgroundColor: colors.brandPrimary, height: 48, borderRadius: radius.md, marginTop: spacing.md },
+  calBtnText: { color: colors.onBrandPrimary, fontWeight: "700", fontSize: 15 },
+  calBtnFree: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: spacing.sm, backgroundColor: colors.brandTertiary, height: 48, borderRadius: radius.md, marginTop: spacing.md, borderWidth: 1, borderColor: colors.border },
+  calBtnFreeText: { color: colors.brandPrimary, fontWeight: "700", fontSize: 15 },
   block: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.border },
   blockHeader: { flexDirection: "row", alignItems: "center", gap: spacing.sm, marginBottom: spacing.sm },
   blockTitle: { fontSize: 15, fontWeight: "800", color: colors.onSurface },

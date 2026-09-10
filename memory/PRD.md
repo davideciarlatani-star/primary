@@ -17,8 +17,9 @@ App mobile per monitorare in tempo reale aiuti, bonus, detrazioni e rimborsi sta
 
 ## Implemented (2026-06)
 - Onboarding wizard 7 step + profilo locale.
-- Home con hero, card AI suggerimenti, lista bonus idonei/altri.
-- Dettaglio bonus (importo, scadenza, come richiederlo, ente).
+- Home con hero, ricerca bonus per parola chiave, card AI suggerimenti, lista bonus idonei/altri.
+- Dettaglio bonus (importo, scadenza, come richiederlo, ente) con banner "non accessibile" in cima per bonus non idonei e pulsante "Aggiungi a Google Calendar" (Premium, link rapido).
+- Guide passo-passo Premium con pulsante "Bloccato?" per passo (immagini placeholder) sui 3 bonus pilota.
 - Calendario scadenze ordinate con badge urgenza.
 - Simulazione AI (before/after, breakdown) per non-filer, con fallback.
 - Profilo con dati, modifica e reset. Tutti i flussi testati (backend 10/10, frontend e2e).

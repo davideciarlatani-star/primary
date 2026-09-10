@@ -25,5 +25,6 @@ export const api = {
   simulate: (profile: Profile, annual_income: number) =>
     post("/simulate", { profile, annual_income }),
   bonus: (id: string) => get(`/bonus/${id}`),
+  bonusDetail: (id: string, profile: Profile) => post(`/bonus/${id}/detail`, profile),
   guide: (id: string) => get(`/bonus/${id}/guide`),
 };
