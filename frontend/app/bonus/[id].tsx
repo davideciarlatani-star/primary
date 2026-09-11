@@ -121,7 +121,16 @@ export default function BonusDetail() {
               <Text style={styles.guideBtnText}>Voglio richiedere questo bonus</Text>
             </Pressable>
           ) : (
-            <PremiumLockBanner testID="btn-request-bonus-locked" />
+            <Pressable style={styles.guideLock} onPress={() => router.push("/(tabs)/profilo")} testID="btn-request-bonus-locked">
+              <View style={styles.lockIcon}>
+                <Ionicons name="lock-closed" size={18} color={colors.onAccentOrange} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.guideLockTitle}>Guida passo-passo · Premium</Text>
+                <Text style={styles.guideLockText}>{"Passa a Premium per sbloccare la guida completa alla domanda."}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.onAccentOrangeLight} />
+            </Pressable>
           )
         )}
 
@@ -225,4 +234,8 @@ const styles = StyleSheet.create({
   noteText: { flex: 1, fontSize: 13, color: colors.onBrandTertiary, lineHeight: 19, fontWeight: "500" },
   guideBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: spacing.sm, backgroundColor: colors.brandPrimary, height: 54, borderRadius: radius.md },
   guideBtnText: { color: colors.onBrandPrimary, fontWeight: "700", fontSize: 16 },
+  guideLock: { flexDirection: "row", alignItems: "center", gap: spacing.md, backgroundColor: colors.accentOrangeLight, borderRadius: radius.md, padding: spacing.md, borderWidth: 1, borderColor: colors.accentOrange },
+  lockIcon: { width: 36, height: 36, borderRadius: radius.sm, backgroundColor: colors.accentOrange, alignItems: "center", justifyContent: "center" },
+  guideLockTitle: { fontSize: 14, fontWeight: "800", color: colors.onAccentOrangeLight },
+  guideLockText: { fontSize: 12, color: colors.onAccentOrangeLight, lineHeight: 16, marginTop: 1 },
 });
