@@ -8,6 +8,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { api } from "@/src/api";
 import { useProfile } from "@/src/ProfileContext";
+import { PremiumLockBanner } from "@/src/components/PremiumLockBanner";
 import { colors, spacing, radius } from "@/src/theme";
 
 export default function Guida() {
@@ -168,19 +169,11 @@ export default function Guida() {
                     ))}
                   </ScrollView>
                 ) : (
-                  <View style={styles.premiumBox} testID="stuck-premium-lock">
-                    <View style={styles.premiumBoxIcon}>
-                      <Ionicons name="lock-closed" size={22} color={colors.onAccentOrange} />
-                    </View>
-                    <Text style={styles.premiumBoxTitle}>Aiuto visivo · Premium</Text>
-                    <Text style={styles.premiumBoxText}>
-                      {"Le immagini esplicative che ti guidano passo dopo passo sono una funzione Premium."}
-                    </Text>
-                    <Pressable style={styles.premiumBoxCta} onPress={() => { setHelpIndex(null); router.push("/(tabs)/profilo"); }} testID="stuck-premium-cta">
-                      <Ionicons name="star" size={16} color={colors.onAccentOrange} />
-                      <Text style={styles.premiumBoxCtaText}>Passa a Premium</Text>
-                    </Pressable>
-                  </View>
+                  <PremiumLockBanner
+                    testID="stuck-premium-lock"
+                    style={{ marginTop: spacing.md }}
+                    onPress={() => { setHelpIndex(null); router.push("/(tabs)/profilo"); }}
+                  />
                 )}
               </>
             )}
@@ -236,10 +229,4 @@ const styles = StyleSheet.create({
   imgPlaceholder: { width: "100%", height: 160, borderRadius: radius.md, backgroundColor: colors.surfaceTertiary, borderWidth: 1.5, borderColor: colors.borderStrong, borderStyle: "dashed", alignItems: "center", justifyContent: "center", gap: spacing.xs },
   imgPlaceholderTag: { fontSize: 12, fontWeight: "700", color: colors.onSurfaceTertiary },
   imgCaption: { fontSize: 13, color: colors.onSurfaceSecondary, lineHeight: 18 },
-  premiumBox: { alignItems: "center", gap: spacing.sm, backgroundColor: colors.accentOrangeLight, borderRadius: radius.md, padding: spacing.xl, marginTop: spacing.sm, borderWidth: 1, borderColor: colors.accentOrange },
-  premiumBoxIcon: { width: 48, height: 48, borderRadius: radius.md, backgroundColor: colors.accentOrange, alignItems: "center", justifyContent: "center" },
-  premiumBoxTitle: { fontSize: 16, fontWeight: "800", color: colors.onAccentOrangeLight },
-  premiumBoxText: { fontSize: 13, color: colors.onAccentOrangeLight, textAlign: "center", lineHeight: 19 },
-  premiumBoxCta: { flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: colors.accentOrange, paddingHorizontal: spacing.xl, paddingVertical: spacing.md, borderRadius: radius.pill, marginTop: spacing.xs },
-  premiumBoxCtaText: { color: colors.onAccentOrange, fontWeight: "800", fontSize: 14 },
 });

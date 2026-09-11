@@ -7,6 +7,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { api } from "@/src/api";
 import { useProfile } from "@/src/ProfileContext";
+import { PremiumLockBanner } from "@/src/components/PremiumLockBanner";
 import { colors, spacing, radius, categoryColors } from "@/src/theme";
 import { Bonus } from "@/src/types";
 
@@ -120,16 +121,7 @@ export default function BonusDetail() {
               <Text style={styles.guideBtnText}>Voglio richiedere questo bonus</Text>
             </Pressable>
           ) : (
-            <Pressable style={styles.guideLock} onPress={() => router.push("/(tabs)/profilo")} testID="btn-request-bonus-locked">
-              <View style={styles.lockIcon}>
-                <Ionicons name="lock-closed" size={18} color={colors.onAccentOrange} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.guideLockTitle}>Guida passo-passo · Premium</Text>
-                <Text style={styles.guideLockText}>{"Passa a Premium per sbloccare la guida completa alla domanda."}</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color={colors.onAccentOrangeLight} />
-            </Pressable>
+            <PremiumLockBanner testID="btn-request-bonus-locked" />
           )
         )}
 
@@ -154,18 +146,7 @@ export default function BonusDetail() {
                 <Ionicons name="lock-closed" size={15} color={colors.accentOrange} />
               </Pressable>
               {showCalPremium && (
-                <Pressable style={styles.lockBanner} onPress={() => router.push("/(tabs)/profilo")} testID="detail-gcal-premium-lock">
-                  <View style={styles.lockIcon}>
-                    <Ionicons name="star" size={18} color={colors.onAccentOrange} />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.lockTitle}>Funzione Premium</Text>
-                    <Text style={styles.lockText}>{"Salva la scadenza nel tuo Google Calendar. Passa a Premium per sbloccarla."}</Text>
-                  </View>
-                  <View style={styles.lockCta}>
-                    <Text style={styles.lockCtaText}>Passa a Premium</Text>
-                  </View>
-                </Pressable>
+                <PremiumLockBanner testID="detail-gcal-premium-lock" style={{ marginTop: spacing.md }} />
               )}
             </>
           )}
@@ -198,18 +179,7 @@ export default function BonusDetail() {
               </View>
             )
           ) : (
-            <Pressable style={styles.lockBanner} onPress={() => router.push("/(tabs)/profilo")} testID="detail-premium-lock">
-              <View style={styles.lockIcon}>
-                <Ionicons name="lock-closed" size={18} color={colors.onAccentOrange} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.lockTitle}>Funzione Premium</Text>
-                <Text style={styles.lockText}>{"Sblocca il link diretto alla pagina di domanda dell'ente."}</Text>
-              </View>
-              <View style={styles.lockCta}>
-                <Text style={styles.lockCtaText}>Passa a Premium</Text>
-              </View>
-            </Pressable>
+            <PremiumLockBanner testID="detail-premium-lock" style={{ marginTop: spacing.md }} />
           )}
         </View>
 
@@ -253,15 +223,6 @@ const styles = StyleSheet.create({
   linkBtnText: { color: colors.onBrandPrimary, fontWeight: "700", fontSize: 15 },
   noteBox: { flexDirection: "row", gap: spacing.sm, alignItems: "flex-start", backgroundColor: colors.brandTertiary, borderRadius: radius.md, padding: spacing.md, marginTop: spacing.md },
   noteText: { flex: 1, fontSize: 13, color: colors.onBrandTertiary, lineHeight: 19, fontWeight: "500" },
-  lockBanner: { flexDirection: "row", alignItems: "center", gap: spacing.md, backgroundColor: colors.accentOrangeLight, borderRadius: radius.md, padding: spacing.md, marginTop: spacing.md, borderWidth: 1, borderColor: colors.accentOrange },
-  lockIcon: { width: 36, height: 36, borderRadius: radius.sm, backgroundColor: colors.accentOrange, alignItems: "center", justifyContent: "center" },
-  lockTitle: { fontSize: 14, fontWeight: "800", color: colors.onAccentOrangeLight },
-  lockText: { fontSize: 12, color: colors.onAccentOrangeLight, lineHeight: 16, marginTop: 1 },
-  lockCta: { backgroundColor: colors.accentOrange, paddingHorizontal: spacing.md, paddingVertical: 8, borderRadius: radius.pill },
-  lockCtaText: { color: colors.onAccentOrange, fontWeight: "700", fontSize: 12 },
   guideBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: spacing.sm, backgroundColor: colors.brandPrimary, height: 54, borderRadius: radius.md },
   guideBtnText: { color: colors.onBrandPrimary, fontWeight: "700", fontSize: 16 },
-  guideLock: { flexDirection: "row", alignItems: "center", gap: spacing.md, backgroundColor: colors.accentOrangeLight, borderRadius: radius.md, padding: spacing.md, borderWidth: 1, borderColor: colors.accentOrange },
-  guideLockTitle: { fontSize: 14, fontWeight: "800", color: colors.onAccentOrangeLight },
-  guideLockText: { fontSize: 12, color: colors.onAccentOrangeLight, lineHeight: 16, marginTop: 1 },
 });
