@@ -14,7 +14,7 @@ import { colors, spacing, radius } from "@/src/theme";
 export default function Guida() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { premium } = useProfile();
+  const { premium, showPaywall } = useProfile();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [guide, setGuide] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -172,7 +172,7 @@ export default function Guida() {
                   <PremiumLockBanner
                     testID="stuck-premium-lock"
                     style={{ marginTop: spacing.md }}
-                    onPress={() => { setHelpIndex(null); router.push("/(tabs)/profilo"); }}
+                    onPress={() => { setHelpIndex(null); showPaywall(); }}
                   />
                 )}
               </>

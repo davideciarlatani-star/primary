@@ -1,11 +1,13 @@
 export type Profile = {
   age_range: string;
+  age?: number | null;
   region: string;
   employment: string;
   household_size: number;
   children: number;
   children_under_3: number;
   isee_range: string;
+  isee_exact?: number | null;
   home_owner: boolean;
   renting: boolean;
   disability: boolean;
@@ -44,7 +46,7 @@ export type Deadline = {
   amount: string;
 };
 
-export const AGE_RANGES = ["18-25", "26-35", "36-50", "51-67", "67+"];
+export const AGE_RANGES = ["18-24", "25-30", "31-40", "41-49", "50-59", "60-64", "65-74", "75+"];
 export const EMPLOYMENTS = [
   { key: "dipendente", label: "Lavoratore dipendente" },
   { key: "autonomo", label: "Lavoratore autonomo" },
@@ -54,10 +56,15 @@ export const EMPLOYMENTS = [
   { key: "mai_dichiarato", label: "Mai dichiarato / in nero" },
 ];
 export const ISEE_RANGES = [
-  { key: "0-10", label: "Fino a 10.000 €" },
-  { key: "10-25", label: "10.000 - 25.000 €" },
-  { key: "25-40", label: "25.000 - 40.000 €" },
-  { key: "40+", label: "Oltre 40.000 €" },
+  { key: "0-8", label: "Fino a 8.000 €" },
+  { key: "8-10", label: "8.000 - 10.000 €" },
+  { key: "10-15", label: "10.000 - 15.000 €" },
+  { key: "15-20", label: "15.000 - 20.000 €" },
+  { key: "20-25", label: "20.000 - 25.000 €" },
+  { key: "25-35", label: "25.000 - 35.000 €" },
+  { key: "35-40", label: "35.000 - 40.000 €" },
+  { key: "40-50", label: "40.000 - 50.000 €" },
+  { key: "50+", label: "Oltre 50.000 €" },
   { key: "unknown", label: "Non lo so" },
 ];
 export const REGIONS = [
@@ -68,13 +75,15 @@ export const REGIONS = [
 ];
 
 export const DEFAULT_PROFILE: Profile = {
-  age_range: "26-35",
+  age_range: "31-40",
+  age: null,
   region: "Lazio",
   employment: "dipendente",
   household_size: 1,
   children: 0,
   children_under_3: 0,
-  isee_range: "10-25",
+  isee_range: "20-25",
+  isee_exact: null,
   home_owner: false,
   renting: false,
   disability: false,

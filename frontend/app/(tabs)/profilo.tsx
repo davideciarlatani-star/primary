@@ -11,17 +11,19 @@ import { EMPLOYMENTS, ISEE_RANGES } from "@/src/types";
 export default function Profilo() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { profile, clearProfile, premium, setPremium } = useProfile();
+  const { profile, clearProfile, premium, setPremium, showPaywall } = useProfile();
   if (!profile) return null;
 
   const empLabel = EMPLOYMENTS.find((e) => e.key === profile.employment)?.label || profile.employment;
   const iseeLabel = ISEE_RANGES.find((i) => i.key === profile.isee_range)?.label || profile.isee_range;
+  const ageValue = profile.age != null ? `${profile.age} anni` : `${profile.age_range} anni`;
+  const iseeValue = profile.isee_exact != null ? `${profile.isee_exact.toLocaleString("it-IT")} € (esatto)` : iseeLabel;
 
   const rows: { icon: string; label: string; value: string }[] = [
-    { icon: "person", label: "Età", value: `${profile.age_range} anni` },
+    { icon: "person", label: "Età", value: ageValue },
     { icon: "location", label: "Regione", value: profile.region },
     { icon: "briefcase", label: "Occupazione", value: empLabel },
-    { icon: "cash", label: "Fascia ISEE", value: iseeLabel },
+    { icon: "cash", label: "ISEE", value: iseeValue },
     { icon: "people", label: "Nucleo familiare", value: `${profile.household_size} persone` },
     { icon: "happy", label: "Figli", value: `${profile.children}${profile.children_under_3 > 0 ? ` (${profile.children_under_3} < 3 anni)` : ""}` },
     { icon: "home", label: "Casa", value: profile.home_owner ? "Proprietario" : profile.renting ? "In affitto" : "Non indicato" },
@@ -46,29 +48,36 @@ export default function Profilo() {
           <Text style={styles.privacyText}>I tuoi dati non vengono inviati a terzi: restano privati sul telefono.</Text>
         </View>
 
-        {/* TEMPORANEO — solo per test, rimuovere prima della distribuzione pubblica */}
-        <View style={styles.devCard} testID="dev-premium-toggle">
-          <View style={styles.devHeader}>
-            <Ionicons name="flask" size={16} color={colors.accentOrange} />
-            <Text style={styles.devTitle}>Modalità test (temporanea)</Text>
-          </View>
-          <View style={styles.devStatusRow}>
-            <Text style={styles.devStatusLabel}>Piano attuale:</Text>
-            <View style={[styles.planBadge, premium ? styles.planBadgePremium : styles.planBadgeFree]}>
-              <Ionicons name={premium ? "star" : "person"} size={13} color={premium ? colors.onAccentOrange : colors.onBrandSecondary} />
-              <Text style={[styles.planBadgeText, { color: premium ? colors.onAccentOrange : colors.onBrandSecondary }]}>{premium ? "PREMIUM" : "FREE"}</Text>
+        {/* Premium status / upsell */}
+        {premium ? (
+          <View style={styles.premiumCard} testID="premium-status-card">
+            <View style={styles.premiumRow}>
+              <View style={styles.premiumIcon}>
+                <Ionicons name="star" size={18} color={colors.onAccentOrange} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.premiumTitle}>Sei un utente Premium</Text>
+                <Text style={styles.premiumSub}>Hai accesso a tutte le funzionalità.</Text>
+              </View>
             </View>
-          </View>
-          <View style={styles.devBtnRow}>
-            <Pressable style={[styles.devBtn, styles.devBtnPremium]} onPress={() => setPremium(true)} testID="btn-go-premium">
-              <Ionicons name="star" size={16} color={colors.onAccentOrange} />
-              <Text style={styles.devBtnPremiumText}>Passa a Premium</Text>
-            </Pressable>
-            <Pressable style={[styles.devBtn, styles.devBtnFree]} onPress={() => setPremium(false)} testID="btn-go-free">
-              <Text style={styles.devBtnFreeText}>Passa a Free</Text>
+            <Pressable onPress={() => setPremium(false)} hitSlop={8} testID="btn-reset-premium">
+              <Text style={styles.premiumResetText}>Disattiva Premium (solo test)</Text>
             </Pressable>
           </View>
-        </View>
+        ) : (
+          <Pressable style={styles.upsellCard} onPress={showPaywall} testID="btn-open-paywall">
+            <View style={styles.premiumIcon}>
+              <Ionicons name="star" size={18} color={colors.onAccentOrange} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.upsellTitle}>Passa a Premium</Text>
+              <Text style={styles.upsellSub}>Sblocca guide, link diretti e calendario scadenze.</Text>
+            </View>
+            <View style={styles.upsellCta}>
+              <Text style={styles.upsellCtaText}>€ 5</Text>
+            </View>
+          </Pressable>
+        )}
 
         <View style={styles.group}>
           {rows.map((r, i) => (
@@ -103,21 +112,17 @@ const styles = StyleSheet.create({
   headerSub: { fontSize: 14, color: colors.onSurfaceTertiary, marginTop: 2 },
   privacyCard: { flexDirection: "row", alignItems: "center", gap: spacing.sm, backgroundColor: "#ECFDF5", borderRadius: radius.md, padding: spacing.md, borderWidth: 1, borderColor: "#A7F3D0" },
   privacyText: { flex: 1, fontSize: 13, color: "#065F46", lineHeight: 18 },
-  devCard: { backgroundColor: "#FFFBF5", borderRadius: radius.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.accentOrangeLight, gap: spacing.md },
-  devHeader: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
-  devTitle: { fontSize: 14, fontWeight: "700", color: colors.onAccentOrangeLight },
-  devStatusRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
-  devStatusLabel: { fontSize: 14, color: colors.onSurfaceSecondary },
-  planBadge: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: spacing.md, paddingVertical: 4, borderRadius: radius.pill },
-  planBadgePremium: { backgroundColor: colors.accentOrange },
-  planBadgeFree: { backgroundColor: colors.brandSecondary },
-  planBadgeText: { fontSize: 12, fontWeight: "800", letterSpacing: 0.5 },
-  devBtnRow: { flexDirection: "row", gap: spacing.sm },
-  devBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, height: 46, borderRadius: radius.md },
-  devBtnPremium: { backgroundColor: colors.accentOrange },
-  devBtnPremiumText: { color: colors.onAccentOrange, fontWeight: "700", fontSize: 14 },
-  devBtnFree: { backgroundColor: colors.surfaceTertiary, borderWidth: 1, borderColor: colors.border },
-  devBtnFreeText: { color: colors.onSurfaceSecondary, fontWeight: "700", fontSize: 14 },
+  premiumCard: { backgroundColor: "#FFFBF5", borderRadius: radius.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.accentOrangeLight, gap: spacing.md },
+  premiumRow: { flexDirection: "row", alignItems: "center", gap: spacing.md },
+  premiumIcon: { width: 40, height: 40, borderRadius: radius.md, backgroundColor: colors.accentOrange, alignItems: "center", justifyContent: "center" },
+  premiumTitle: { fontSize: 16, fontWeight: "800", color: colors.onAccentOrangeLight },
+  premiumSub: { fontSize: 13, color: colors.onSurfaceSecondary, marginTop: 1 },
+  premiumResetText: { fontSize: 12, color: colors.onSurfaceTertiary, fontWeight: "600", textDecorationLine: "underline" },
+  upsellCard: { flexDirection: "row", alignItems: "center", gap: spacing.md, backgroundColor: "#FFFBF5", borderRadius: radius.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.accentOrange },
+  upsellTitle: { fontSize: 16, fontWeight: "800", color: colors.onAccentOrangeLight },
+  upsellSub: { fontSize: 13, color: colors.onSurfaceSecondary, marginTop: 1, lineHeight: 18 },
+  upsellCta: { backgroundColor: colors.accentOrange, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm, borderRadius: radius.pill },
+  upsellCtaText: { color: colors.onAccentOrange, fontWeight: "900", fontSize: 16 },
   group: { backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, overflow: "hidden" },
   row: { flexDirection: "row", alignItems: "center", gap: spacing.md, padding: spacing.md, minHeight: 56 },
   rowBorder: { borderBottomWidth: 1, borderBottomColor: colors.divider },

@@ -15,11 +15,10 @@ export default function BonusDetail() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { premium, profile } = useProfile();
+  const { premium, profile, showPaywall } = useProfile();
   const [bonus, setBonus] = useState<Bonus | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [showCalPremium, setShowCalPremium] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -121,7 +120,7 @@ export default function BonusDetail() {
               <Text style={styles.guideBtnText}>Voglio richiedere questo bonus</Text>
             </Pressable>
           ) : (
-            <Pressable style={styles.guideLock} onPress={() => router.push("/(tabs)/profilo")} testID="btn-request-bonus-locked">
+            <Pressable style={styles.guideLock} onPress={showPaywall} testID="btn-request-bonus-locked">
               <View style={styles.lockIcon}>
                 <Ionicons name="lock-closed" size={18} color={colors.onAccentOrange} />
               </View>
@@ -148,16 +147,11 @@ export default function BonusDetail() {
               <Text style={styles.calBtnText}>Aggiungi a Google Calendar</Text>
             </Pressable>
           ) : (
-            <>
-              <Pressable style={styles.calBtnFree} onPress={() => setShowCalPremium(true)} testID="detail-gcal-btn-locked">
-                <Ionicons name="logo-google" size={18} color={colors.brandPrimary} />
-                <Text style={styles.calBtnFreeText}>Aggiungi a Google Calendar</Text>
-                <Ionicons name="lock-closed" size={15} color={colors.accentOrange} />
-              </Pressable>
-              {showCalPremium && (
-                <PremiumLockBanner testID="detail-gcal-premium-lock" style={{ marginTop: spacing.md }} />
-              )}
-            </>
+            <Pressable style={styles.calBtnFree} onPress={showPaywall} testID="detail-gcal-btn-locked">
+              <Ionicons name="logo-google" size={18} color={colors.brandPrimary} />
+              <Text style={styles.calBtnFreeText}>Aggiungi a Google Calendar</Text>
+              <Ionicons name="lock-closed" size={15} color={colors.accentOrange} />
+            </Pressable>
           )}
         </View>
 

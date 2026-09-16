@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { storage } from "@/src/utils/storage";
 import { Profile } from "./types";
+import { PaywallModal } from "@/src/components/PaywallModal";
 
 const KEY = "bonusradar_profile";
 const PREMIUM_KEY = "bonusradar_premium";
@@ -12,6 +13,8 @@ type Ctx = {
   setPremium: (v: boolean) => Promise<void>;
   saveProfile: (p: Profile) => Promise<void>;
   clearProfile: () => Promise<void>;
+  showPaywall: () => void;
+  hidePaywall: () => void;
 };
 
 const ProfileContext = createContext<Ctx>({
@@ -21,12 +24,15 @@ const ProfileContext = createContext<Ctx>({
   setPremium: async () => {},
   saveProfile: async () => {},
   clearProfile: async () => {},
+  showPaywall: () => {},
+  hidePaywall: () => {},
 });
 
 export function ProfileProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [premium, setPremiumState] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [paywall, setPaywall] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -53,9 +59,20 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
     setProfile(null);
   };
 
+  const showPaywall = () => setPaywall(true);
+  const hidePaywall = () => setPaywall(false);
+
+  const purchase = async () => {
+    await setPremium(true);
+    setPaywall(false);
+  };
+
   return (
-    <ProfileContext.Provider value={{ profile, loading, premium, setPremium, saveProfile, clearProfile }}>
+    <ProfileContext.Provider
+      value={{ profile, loading, premium, setPremium, saveProfile, clearProfile, showPaywall, hidePaywall }}
+    >
       {children}
+      <PaywallModal visible={paywall} onClose={hidePaywall} onPurchase={purchase} />
     </ProfileContext.Provider>
   );
 }

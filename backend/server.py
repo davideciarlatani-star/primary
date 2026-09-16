@@ -29,13 +29,15 @@ EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY')
 # ----------------------------- Models -----------------------------
 
 class Profile(BaseModel):
-    age_range: str = "26-35"        # 18-25, 26-35, 36-50, 51-67, 67+
+    age_range: str = "26-35"        # fasce precise (vedi AGE_REP)
+    age: Optional[int] = None        # età esatta (prioritaria se presente)
     region: str = "Lazio"
     employment: str = "dipendente"  # dipendente, autonomo, disoccupato, studente, pensionato, mai_dichiarato
     household_size: int = 1
     children: int = 0
     children_under_3: int = 0
-    isee_range: str = "10-25"        # 0-10, 10-25, 25-40, 40+, unknown
+    isee_range: str = "10-25"        # fasce precise (vedi ISEE_REP)
+    isee_exact: Optional[float] = None  # ISEE esatto (prioritario se presente)
     home_owner: bool = False
     renting: bool = False
     disability: bool = False
@@ -49,7 +51,51 @@ class SimInput(BaseModel):
 # Catalogo curato di aiuti/bonus statali italiani (dati indicativi 2025-2026).
 
 def isee_min(p: Profile) -> float:
-    return {"0-10": 5000, "10-25": 17500, "25-40": 32500, "40+": 45000, "unknown": 20000}.get(p.isee_range, 20000)
+    return isee_val(p)
+
+# Valori rappresentativi (punto medio) delle fasce; i confini coincidono con le
+# soglie reali dei bonus (età: 31/60/65; ISEE: 8k/10k/15k/20k/25k/35k/40k/50k)
+AGE_REP = {
+    "18-24": 21, "25-30": 27, "31-40": 35, "41-49": 45,
+    "50-59": 54, "60-64": 62, "65-74": 69, "75+": 80,
+    # legacy (profili salvati con vecchie fasce)
+    "18-25": 21, "26-35": 30, "36-50": 43, "51-67": 59, "67+": 70,
+}
+ISEE_REP = {
+    "0-8": 5000, "8-10": 9000, "10-15": 12500, "15-20": 17500,
+    "20-25": 22500, "25-35": 30000, "35-40": 37500, "40-50": 45000,
+    "50+": 60000, "unknown": 20000,
+    # legacy
+    "0-10": 7000, "10-25": 17500, "25-40": 32500, "40+": 45000,
+}
+ISEE_LABELS = {
+    "0-8": "fino a 8.000 €", "8-10": "8.000-10.000 €", "10-15": "10.000-15.000 €",
+    "15-20": "15.000-20.000 €", "20-25": "20.000-25.000 €", "25-35": "25.000-35.000 €",
+    "35-40": "35.000-40.000 €", "40-50": "40.000-50.000 €", "50+": "oltre 50.000 €",
+    "unknown": "non indicata",
+    "0-10": "fino a 10.000 €", "10-25": "10.000-25.000 €", "25-40": "25.000-40.000 €", "40+": "oltre 40.000 €",
+}
+EMP_LABELS = {
+    "dipendente": "lavoratori dipendenti", "autonomo": "lavoratori autonomi",
+    "disoccupato": "disoccupati", "studente": "studenti",
+    "pensionato": "pensionati", "mai_dichiarato": "chi non ha mai dichiarato",
+}
+
+
+def age_val(p: Profile) -> int:
+    if getattr(p, "age", None):
+        return int(p.age)
+    return AGE_REP.get(p.age_range, 35)
+
+
+def isee_val(p: Profile) -> float:
+    if getattr(p, "isee_exact", None) is not None:
+        return float(p.isee_exact)
+    return ISEE_REP.get(p.isee_range, 20000)
+
+
+def eur(n) -> str:
+    return f"{int(round(n)):,}".replace(",", ".") + " €"
 
 BONUSES = [
     {
@@ -65,6 +111,7 @@ BONUSES = [
         "how": "Domanda online sul portale INPS con SPID/CIE, tramite CAF o patronato.",
         "source": "INPS",
         "rule": lambda p: p.children > 0,
+        "msg": {"needs_children": True},
         "why": "Hai figli a carico nel nucleo familiare.",
         "declaration": "Domanda telematica INPS dedicata — non serve il 730.",
         "apply_url": "https://www.inps.it/it/it/dettaglio-scheda.it.schede-servizio-strumento.schede-servizi.assegno-unico-e-universale-per-i-figli-a-carico-55984.assegno-unico-e-universale-per-i-figli-a-carico.html",
@@ -83,6 +130,7 @@ BONUSES = [
         "how": "Domanda online INPS allegando le ricevute di pagamento della retta.",
         "source": "INPS",
         "rule": lambda p: p.children_under_3 > 0,
+        "msg": {"needs_children_under_3": True},
         "why": "Hai figli sotto i 3 anni.",
         "declaration": "Domanda telematica INPS dedicata con ricevute — non serve il 730.",
         "apply_url": "https://www.inps.it/it/it/dettaglio-scheda.it.schede-servizio-strumento.schede-servizi.bonus-asilo-nido-e-forme-di-supporto-presso-la-propria-abitazione-51105.bonus-asilo-nido-e-forme-di-supporto-presso-la-propria-abitazione.html",
@@ -100,7 +148,8 @@ BONUSES = [
         "deadline_note": "Assegnata automaticamente dai Comuni; da attivare entro le scadenze annuali.",
         "how": "Nessuna domanda: i beneficiari sono individuati da INPS e Comuni in base all'ISEE.",
         "source": "INPS / Comuni",
-        "rule": lambda p: p.isee_range == "0-10" and p.household_size >= 3,
+        "rule": lambda p: isee_val(p) <= 15000 and p.household_size >= 3,
+        "msg": {"isee_max": 15000, "household_min": 3},
         "why": "Nucleo familiare numeroso con ISEE basso.",
         "declaration": "Nessuna domanda: assegnazione automatica in base all'ISEE (DSU).",
         "apply_url": "",
@@ -119,7 +168,8 @@ BONUSES = [
         "deadline_note": "Domanda in qualsiasi momento; rinnovo dopo 18 mesi.",
         "how": "Domanda online INPS con SPID/CIE o tramite patronato, con sottoscrizione del Patto di attivazione.",
         "source": "INPS",
-        "rule": lambda p: p.isee_range == "0-10" and (p.children > 0 or p.disability or p.age_range in ("51-67", "67+")),
+        "rule": lambda p: isee_val(p) <= 10140 and (p.children > 0 or p.disability or age_val(p) >= 60),
+        "msg": {"isee_max": 10140},
         "why": "ISEE molto basso con presenza di minori, disabilità o over 60.",
         "declaration": "Domanda INPS + Patto di attivazione — non serve il 730.",
         "apply_url": "",
@@ -139,6 +189,7 @@ BONUSES = [
         "how": "Domanda online INPS con SPID/CIE, CAF o patronato.",
         "source": "INPS",
         "rule": lambda p: p.employment == "disoccupato",
+        "msg": {"employment_in": ["disoccupato"]},
         "why": "Risulti attualmente disoccupato.",
         "declaration": "Domanda telematica INPS dedicata — non serve il 730.",
         "apply_url": "",
@@ -157,7 +208,8 @@ BONUSES = [
         "deadline_note": "Da indicare nella dichiarazione dei redditi (730/Redditi PF).",
         "how": "Inserimento nella dichiarazione dei redditi allegando il contratto di locazione registrato.",
         "source": "Agenzia delle Entrate",
-        "rule": lambda p: p.age_range in ("18-25", "26-35") and p.renting and p.isee_range in ("0-10", "10-25"),
+        "rule": lambda p: age_val(p) < 31 and p.renting and isee_val(p) <= 25000,
+        "msg": {"age_max": 30, "renting": True, "isee_max": 25000},
         "why": "Sei giovane, in affitto e con reddito contenuto.",
         "declaration": "Va inserita nella dichiarazione dei redditi (730 o Redditi PF).",
         "apply_url": "",
@@ -177,6 +229,7 @@ BONUSES = [
         "how": "Pagamenti con bonifico parlante e inserimento delle spese in dichiarazione dei redditi.",
         "source": "Agenzia delle Entrate",
         "rule": lambda p: p.home_owner and p.has_filed,
+        "msg": {"home_owner": True, "has_filed": True},
         "why": "Sei proprietario di un immobile.",
         "declaration": "Va inserita nella dichiarazione dei redditi (730 o Redditi PF).",
         "apply_url": "",
@@ -196,6 +249,7 @@ BONUSES = [
         "how": "Voucher richiesto tramite app/piattaforma governativa dedicata al momento dell'acquisto.",
         "source": "Ministero delle Imprese",
         "rule": lambda p: True,
+        "msg": {},
         "why": "Disponibile per tutti i residenti che acquistano elettrodomestici efficienti.",
         "declaration": "Voucher su piattaforma dedicata — nessuna dichiarazione.",
         "apply_url": "https://bonuselettrodomestici.it",
@@ -213,7 +267,8 @@ BONUSES = [
         "deadline_note": "Domanda nella finestra annuale INPS, fino a esaurimento fondi.",
         "how": "Domanda online INPS con SPID/CIE nella finestra prevista.",
         "source": "INPS",
-        "rule": lambda p: p.isee_range in ("0-10", "10-25", "25-40"),
+        "rule": lambda p: isee_val(p) <= 50000,
+        "msg": {"isee_max": 50000},
         "why": "Rientri nelle soglie ISEE previste per il contributo.",
         "declaration": "Domanda telematica INPS dedicata — non serve il 730.",
         "apply_url": "https://www.inps.it/it/it/dettaglio-scheda.it.schede-servizio-strumento.schede-servizi.contributo-per-sostenere-le-spese-relative-a-sessioni-di-psicoterapia-bonus-psicologo.html",
@@ -231,7 +286,8 @@ BONUSES = [
         "deadline_note": "Registrazione entro le scadenze dell'anno del 18° compleanno.",
         "how": "Registrazione sull'app/portale dedicato con SPID.",
         "source": "Ministero della Cultura",
-        "rule": lambda p: p.age_range == "18-25" and p.isee_range in ("0-10", "10-25", "25-40"),
+        "rule": lambda p: age_val(p) <= 25 and isee_val(p) <= 35000,
+        "msg": {"age_max": 25, "isee_max": 35000},
         "why": "Sei un giovane con ISEE entro la soglia prevista.",
         "declaration": "Registrazione sul portale dedicato — nessuna dichiarazione.",
         "apply_url": "https://cartegiovani.cultura.gov.it",
@@ -250,6 +306,7 @@ BONUSES = [
         "how": "Comunicazione al datore di lavoro dei codici fiscali dei figli.",
         "source": "INPS",
         "rule": lambda p: p.children >= 2 and p.employment in ("dipendente", "autonomo"),
+        "msg": {"children_min": 2, "employment_in": ["dipendente", "autonomo"]},
         "why": "Hai due o più figli e sei lavoratrice/lavoratore.",
         "declaration": "Comunicazione al datore di lavoro — nessuna dichiarazione.",
         "apply_url": "",
@@ -269,6 +326,7 @@ BONUSES = [
         "how": "Conservare scontrini/fatture e inserire le spese nel 730 o Redditi PF.",
         "source": "Agenzia delle Entrate",
         "rule": lambda p: p.has_filed,
+        "msg": {"has_filed": True},
         "why": "Puoi recuperare parte delle spese sanitarie in dichiarazione.",
         "declaration": "Va inserita nella dichiarazione dei redditi (730 o Redditi PF).",
         "apply_url": "",
@@ -287,7 +345,8 @@ BONUSES = [
         "deadline_note": "Riconosciuto automaticamente per tutto l'anno in cui l'ISEE è valido.",
         "how": "Nessuna domanda: presentare la DSU per l'ISEE aggiornato; lo sconto arriva in automatico in bolletta.",
         "source": "ARERA / INPS",
-        "rule": lambda p: p.isee_range == "0-10" or (p.isee_range == "10-25" and p.children >= 3),
+        "rule": lambda p: isee_val(p) <= 10000 or (isee_val(p) <= 25000 and p.children >= 3),
+        "msg": {},
         "why": "Rientri nelle soglie ISEE del bonus sociale.",
         "declaration": "Automatico con ISEE (DSU) — nessuna domanda specifica.",
         "apply_url": "",
@@ -306,7 +365,8 @@ BONUSES = [
         "deadline_note": "Domanda in qualsiasi momento presso gli uffici postali.",
         "how": "Domanda con modulo dedicato presso gli uffici di Poste Italiane o online.",
         "source": "INPS / Poste Italiane",
-        "rule": lambda p: (p.age_range == "67+" or p.children_under_3 > 0) and p.isee_range == "0-10",
+        "rule": lambda p: (age_val(p) >= 65 or p.children_under_3 > 0) and isee_val(p) <= 10000,
+        "msg": {"isee_max": 10000},
         "why": "Hai over 65 o bimbi piccoli con ISEE molto basso.",
         "declaration": "Domanda con modulo dedicato presso Poste/INPS — non serve il 730.",
         "apply_url": "",
@@ -325,7 +385,8 @@ BONUSES = [
         "deadline_note": "Domanda entro 60 giorni dalla nascita/adozione.",
         "how": "Domanda telematica sul portale INPS con SPID/CIE o tramite patronato.",
         "source": "INPS",
-        "rule": lambda p: p.children_under_3 > 0 and p.isee_range in ("0-10", "10-25", "25-40"),
+        "rule": lambda p: p.children_under_3 > 0 and isee_val(p) <= 40000,
+        "msg": {"needs_children_under_3": True, "isee_max": 40000},
         "why": "Hai un figlio nato di recente e ISEE entro 40.000 €.",
         "declaration": "Domanda telematica INPS dedicata — non serve il 730.",
         "apply_url": "https://www.inps.it/it/it/dettaglio-scheda.it.schede-servizio-strumento.schede-servizi.bonus-nuovi-nati.html",
@@ -343,7 +404,8 @@ BONUSES = [
         "deadline_note": "Domanda entro 6 mesi dalla nascita del figlio.",
         "how": "Domanda al Comune di residenza allegando ISEE e documentazione.",
         "source": "Comuni / INPS",
-        "rule": lambda p: p.children_under_3 > 0 and p.isee_range == "0-10" and p.employment in ("disoccupato", "studente", "mai_dichiarato"),
+        "rule": lambda p: p.children_under_3 > 0 and isee_val(p) <= 10000 and p.employment in ("disoccupato", "studente", "mai_dichiarato"),
+        "msg": {"needs_children_under_3": True, "isee_max": 10000, "employment_in": ["disoccupato", "studente", "mai_dichiarato"]},
         "why": "Hai un figlio piccolo e non ricevi altra indennità di maternità.",
         "declaration": "Domanda al Comune di residenza — non serve il 730.",
         "apply_url": "",
@@ -362,7 +424,8 @@ BONUSES = [
         "deadline_note": "Recupero tramite dichiarazione dei redditi annuale.",
         "how": "Conservare le ricevute e inserire le spese nel 730 o Redditi PF.",
         "source": "Agenzia delle Entrate",
-        "rule": lambda p: p.has_filed and (p.children > 0 or p.age_range == "18-25"),
+        "rule": lambda p: p.has_filed and (p.children > 0 or age_val(p) <= 25),
+        "msg": {"has_filed": True},
         "why": "Hai spese di istruzione detraibili per te o per i figli.",
         "declaration": "Va inserita nella dichiarazione dei redditi (730 o Redditi PF).",
         "apply_url": "",
@@ -382,6 +445,7 @@ BONUSES = [
         "how": "Pagamento con bonifico parlante e inserimento delle spese in dichiarazione.",
         "source": "Agenzia delle Entrate",
         "rule": lambda p: (p.home_owner or p.disability) and p.has_filed,
+        "msg": {"has_filed": True},
         "why": "Sei proprietario o hai disabilità nel nucleo: interventi agevolati al 75%.",
         "declaration": "Va inserita in dichiarazione (730/Redditi PF) + bonifico dedicato.",
         "apply_url": "",
@@ -401,6 +465,7 @@ BONUSES = [
         "how": "Domanda all'INPS tramite i servizi sociali del Comune e il centro antiviolenza di riferimento.",
         "source": "INPS / Comuni",
         "rule": lambda p: False,
+        "msg": {},
         "why": "Misura dedicata alle donne vittime di violenza seguite dai centri antiviolenza.",
         "declaration": "Domanda tramite servizi sociali del Comune — non serve il 730.",
         "apply_url": "",
@@ -419,7 +484,8 @@ BONUSES = [
         "deadline_note": "Bando regionale annuale, di solito tra agosto e settembre.",
         "how": "Domanda sul portale dell'ente regionale per il diritto allo studio della tua regione.",
         "source": "Enti Regionali per il Diritto allo Studio",
-        "rule": lambda p: p.age_range in ("18-25", "26-35") and p.employment == "studente" and p.isee_range in ("0-10", "10-25"),
+        "rule": lambda p: p.employment == "studente" and isee_val(p) <= 25000,
+        "msg": {"employment_in": ["studente"], "isee_max": 25000},
         "why": "Sei uno studente con ISEE entro le soglie regionali.",
         "declaration": "Domanda al portale regionale per il diritto allo studio — non è il 730.",
         "apply_url": "",
@@ -438,7 +504,8 @@ BONUSES = [
         "deadline_note": "Bando regionale annuale, di norma in primavera.",
         "how": "Domanda sul portale Bandi Online di Regione Lombardia con SPID/CIE.",
         "source": "Regione Lombardia",
-        "rule": lambda p: p.region == "Lombardia" and p.children > 0 and p.isee_range in ("0-10", "10-25"),
+        "rule": lambda p: p.region == "Lombardia" and p.children > 0 and isee_val(p) <= 25000,
+        "msg": {"region": "Lombardia", "needs_children": True, "isee_max": 25000},
         "why": "Risiedi in Lombardia con figli a scuola e ISEE entro la soglia.",
         "declaration": "Domanda su Bandi Online Regione Lombardia — non serve il 730.",
         "apply_url": "https://www.bandi.regione.lombardia.it",
@@ -456,7 +523,8 @@ BONUSES = [
         "deadline_note": "Bando annuale di Regione Lombardia/Comuni, di norma in autunno; verifica le aperture sul portale.",
         "how": "Domanda sul portale Bandi Online di Regione Lombardia (o presso il Comune) con SPID/CIE, allegando ISEE e contratto registrato.",
         "source": "Regione Lombardia",
-        "rule": lambda p: p.region == "Lombardia" and p.renting and p.isee_range in ("0-10", "10-25"),
+        "rule": lambda p: p.region == "Lombardia" and p.renting and isee_val(p) <= 25000,
+        "msg": {"region": "Lombardia", "renting": True, "isee_max": 25000},
         "why": "Risiedi in Lombardia, sei in affitto e con ISEE entro la soglia del bando.",
         "declaration": "Domanda su Bandi Online Regione Lombardia — non serve il 730.",
         "apply_url": "https://www.bandi.regione.lombardia.it",
@@ -474,7 +542,8 @@ BONUSES = [
         "deadline_note": "Bando regionale/comunale periodico, verifica le aperture nella tua zona.",
         "how": "Domanda al Comune di residenza o sul portale della tua Regione durante il bando.",
         "source": "Regioni / Comuni",
-        "rule": lambda p: p.renting and p.isee_range in ("0-10", "10-25"),
+        "rule": lambda p: p.renting and isee_val(p) <= 25000,
+        "msg": {"renting": True, "isee_max": 25000},
         "why": "Sei in affitto con ISEE contenuto: puoi accedere al fondo regionale.",
         "declaration": "Domanda al Comune/portale regionale — non serve il 730.",
         "apply_url": "",
@@ -694,12 +763,56 @@ GUIDES = {
     },
 }
 
+def build_reason(b: dict, p: Profile) -> str:
+    """Motivo preciso per cui il bonus non è accessibile, basato sui valori esatti del profilo."""
+    m = b.get("msg", {})
+    if m.get("region") and p.region != m["region"]:
+        return f"Questo bonus è riservato ai residenti in {m['region']} (nel profilo hai indicato {p.region})."
+    if m.get("isee_max") is not None and isee_val(p) > m["isee_max"]:
+        if getattr(p, "isee_exact", None) is not None:
+            return f"Il tuo ISEE ({eur(p.isee_exact)}) supera la soglia di {eur(m['isee_max'])} prevista da questo bonus."
+        return f"La tua fascia ISEE ({ISEE_LABELS.get(p.isee_range, p.isee_range)}) supera la soglia di {eur(m['isee_max'])} prevista da questo bonus."
+    if m.get("isee_min") is not None and isee_val(p) < m["isee_min"]:
+        return f"Serve un ISEE di almeno {eur(m['isee_min'])}."
+    if m.get("age_max") is not None and age_val(p) > m["age_max"]:
+        if getattr(p, "age", None):
+            return f"Serve avere al massimo {m['age_max']} anni; tu ne hai {p.age}."
+        return f"Serve avere al massimo {m['age_max']} anni: non compatibile con la fascia d'età indicata."
+    if m.get("age_min") is not None and age_val(p) < m["age_min"]:
+        if getattr(p, "age", None):
+            return f"Serve avere almeno {m['age_min']} anni; tu ne hai {p.age}."
+        return f"Serve avere almeno {m['age_min']} anni."
+    if m.get("needs_children") and p.children < 1:
+        return "Serve avere almeno un figlio a carico."
+    if m.get("children_min") and p.children < m["children_min"]:
+        return f"Servono almeno {m['children_min']} figli a carico (nel profilo ne hai {p.children})."
+    if m.get("needs_children_under_3") and p.children_under_3 < 1:
+        return "Serve avere almeno un figlio sotto i 3 anni."
+    if m.get("household_min") and p.household_size < m["household_min"]:
+        return f"Serve un nucleo di almeno {m['household_min']} persone (il tuo è di {p.household_size})."
+    if m.get("renting") and not p.renting:
+        return "Questo bonus è dedicato a chi vive in affitto."
+    if m.get("home_owner") and not p.home_owner:
+        return "Serve essere proprietari di un immobile."
+    if m.get("has_filed") and not p.has_filed:
+        return "Serve presentare la dichiarazione dei redditi."
+    if m.get("disability") and not p.disability:
+        return "Serve una condizione di disabilità nel nucleo."
+    if m.get("employment_in") and p.employment not in m["employment_in"]:
+        labels = ", ".join(EMP_LABELS.get(e, e) for e in m["employment_in"])
+        return f"Riservato a: {labels}."
+    return REQUIREMENTS.get(b["id"], "Requisiti specifici non soddisfatti dal tuo profilo.")
+
+
 def public_bonus(b: dict, profile: Optional[Profile] = None) -> dict:
-    out = {k: v for k, v in b.items() if k != "rule"}
-    out["requirement"] = REQUIREMENTS.get(b["id"], "Requisiti specifici non soddisfatti dal tuo profilo.")
+    out = {k: v for k, v in b.items() if k not in ("rule", "msg")}
     out["has_guide"] = True
     if profile is not None:
-        out["eligible"] = bool(b["rule"](profile))
+        eligible = bool(b["rule"](profile))
+        out["eligible"] = eligible
+        out["requirement"] = REQUIREMENTS.get(b["id"], "") if eligible else build_reason(b, profile)
+    else:
+        out["requirement"] = REQUIREMENTS.get(b["id"], "Requisiti specifici non soddisfatti dal tuo profilo.")
     return out
 
 # ----------------------------- Routes -----------------------------
@@ -862,13 +975,15 @@ def _parse_json(text: str):
 async def ai_suggest(profile: Profile):
     eligible = [public_bonus(b, profile) for b in BONUSES if b["rule"](profile)]
     names = ", ".join(b["name"] for b in eligible) or "nessun bonus rilevato"
+    age_txt = f"{profile.age} anni" if profile.age else f"fascia {profile.age_range} anni"
+    isee_txt = f"ISEE esatto {int(profile.isee_exact)} €" if profile.isee_exact is not None else f"ISEE fascia {ISEE_LABELS.get(profile.isee_range, profile.isee_range)}"
     system = ("Sei un consulente esperto di welfare e agevolazioni fiscali italiane. "
               "Rispondi SEMPRE ed ESCLUSIVAMENTE in italiano con un JSON valido.")
     prompt = (
-        f"Profilo utente: fascia età {profile.age_range}, regione {profile.region}, "
+        f"Profilo utente: età {age_txt}, regione {profile.region}, "
         f"occupazione {profile.employment}, nucleo di {profile.household_size} persone, "
         f"{profile.children} figli ({profile.children_under_3} sotto i 3 anni), "
-        f"ISEE fascia {profile.isee_range} mila €, "
+        f"{isee_txt}, "
         f"{'proprietario casa' if profile.home_owner else 'non proprietario'}, "
         f"{'in affitto' if profile.renting else 'non in affitto'}, "
         f"{'con disabilità nel nucleo' if profile.disability else 'senza disabilità'}. "
@@ -907,11 +1022,13 @@ async def simulate(data: SimInput):
             base += min(int(digits[0]), 4000)
     rule_estimate = base if base else 1500
 
+    age_txt = f"{p.age} anni" if p.age else f"fascia {p.age_range}"
+    isee_txt = f"ISEE esatto {int(p.isee_exact)} €" if p.isee_exact is not None else f"ISEE fascia {ISEE_LABELS.get(p.isee_range, p.isee_range)}"
     system = ("Sei un consulente fiscale italiano. Aiuti chi non ha mai presentato dichiarazioni "
               "a capire i vantaggi economici del mettersi in regola. Rispondi SOLO con JSON valido in italiano.")
     prompt = (
         f"Un cittadino che non ha mai presentato dichiarazioni dei redditi ha un reddito annuo stimato di {int(data.annual_income)} €. "
-        f"Profilo: età {p.age_range}, {p.children} figli, ISEE fascia {p.isee_range}, "
+        f"Profilo: età {age_txt}, {p.children} figli, {isee_txt}, "
         f"{'proprietario' if p.home_owner else 'non proprietario'}, {'in affitto' if p.renting else 'non in affitto'}. "
         f"Bonus potenzialmente accessibili una volta in regola: {', '.join(b['name'] for b in eligible) or 'agevolazioni base'}. "
         "Stima in modo realistico e prudente il vantaggio economico annuo. Restituisci JSON esatto: "

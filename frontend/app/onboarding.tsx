@@ -1,7 +1,7 @@
 import { useState } from "react";
 import {
   View, Text, StyleSheet, Pressable, ScrollView,
-  KeyboardAvoidingView, Platform,
+  KeyboardAvoidingView, Platform, TextInput,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -54,9 +54,11 @@ export default function Onboarding() {
         keyboardShouldPersistTaps="handled"
       >
         {step === 0 && (
-          <Question title="Qual è la tua fascia d'età?" subtitle="Alcune agevolazioni sono legate all'età.">
+          <Question title="Quanti anni hai?" subtitle="Inserisci l'età esatta per risultati precisi, oppure scegli una fascia.">
+            <ExactInput label="La tua età esatta" placeholder="Es. 34" suffix="anni" value={p.age ?? null} onChange={(v) => set({ age: v })} testID="input-age" />
+            <Divider label="Oppure seleziona una fascia" />
             {AGE_RANGES.map((a) => (
-              <Choice key={a} label={`${a} anni`} selected={p.age_range === a} onPress={() => set({ age_range: a })} testID={`age-${a}`} />
+              <Choice key={a} label={`${a} anni`} selected={p.age == null && p.age_range === a} onPress={() => set({ age_range: a, age: null })} testID={`age-${a}`} />
             ))}
           </Question>
         )}
@@ -70,9 +72,11 @@ export default function Onboarding() {
         )}
 
         {step === 2 && (
-          <Question title="La tua fascia ISEE" subtitle="Molti aiuti dipendono dall'indicatore ISEE.">
+          <Question title="Il tuo ISEE o reddito" subtitle="Se conosci l'ISEE esatto inseriscilo: verrà usato per un filtro preciso. Altrimenti scegli una fascia.">
+            <ExactInput label="Il tuo ISEE esatto" placeholder="Es. 18500" suffix="€" value={p.isee_exact ?? null} onChange={(v) => set({ isee_exact: v })} testID="input-isee" />
+            <Divider label="Oppure seleziona una fascia" />
             {ISEE_RANGES.map((i) => (
-              <Choice key={i.key} label={i.label} selected={p.isee_range === i.key} onPress={() => set({ isee_range: i.key })} testID={`isee-${i.key}`} />
+              <Choice key={i.key} label={i.label} selected={p.isee_exact == null && p.isee_range === i.key} onPress={() => set({ isee_range: i.key, isee_exact: null })} testID={`isee-${i.key}`} />
             ))}
           </Question>
         )}
@@ -140,6 +144,39 @@ function Question({ title, subtitle, children }: { title: string; subtitle: stri
   );
 }
 
+function ExactInput({ label, placeholder, suffix, value, onChange, testID }: { label: string; placeholder: string; suffix: string; value: number | null; onChange: (v: number | null) => void; testID: string }) {
+  return (
+    <View style={styles.exactWrap}>
+      <Text style={styles.exactLabel}>{label}</Text>
+      <View style={[styles.exactField, value != null && styles.exactFieldActive]}>
+        <TextInput
+          style={styles.exactInput}
+          placeholder={placeholder}
+          placeholderTextColor={colors.onSurfaceTertiary}
+          keyboardType="number-pad"
+          value={value != null ? String(value) : ""}
+          onChangeText={(t) => {
+            const digits = t.replace(/[^0-9]/g, "");
+            onChange(digits ? parseInt(digits, 10) : null);
+          }}
+          testID={testID}
+        />
+        <Text style={styles.exactSuffix}>{suffix}</Text>
+      </View>
+    </View>
+  );
+}
+
+function Divider({ label }: { label: string }) {
+  return (
+    <View style={styles.dividerRow}>
+      <View style={styles.dividerLine} />
+      <Text style={styles.dividerText}>{label}</Text>
+      <View style={styles.dividerLine} />
+    </View>
+  );
+}
+
 function Choice({ label, selected, onPress, testID }: { label: string; selected: boolean; onPress: () => void; testID: string }) {
   return (
     <Pressable style={[styles.choice, selected && styles.choiceActive]} onPress={onPress} testID={testID}>
@@ -192,6 +229,15 @@ const styles = StyleSheet.create({
   choiceActive: { borderColor: colors.brandPrimary, backgroundColor: colors.brandTertiary },
   choiceText: { fontSize: 16, color: colors.onSurface, fontWeight: "500", flex: 1 },
   choiceTextActive: { color: colors.brand, fontWeight: "700" },
+  exactWrap: { gap: spacing.xs },
+  exactLabel: { fontSize: 14, fontWeight: "700", color: colors.onSurfaceSecondary },
+  exactField: { flexDirection: "row", alignItems: "center", borderWidth: 1.5, borderColor: colors.border, borderRadius: radius.md, paddingHorizontal: spacing.lg, height: 56, backgroundColor: colors.surface },
+  exactFieldActive: { borderColor: colors.brandPrimary, backgroundColor: colors.brandTertiary },
+  exactInput: { flex: 1, fontSize: 18, fontWeight: "700", color: colors.onSurface, paddingVertical: 0 },
+  exactSuffix: { fontSize: 15, fontWeight: "600", color: colors.onSurfaceTertiary },
+  dividerRow: { flexDirection: "row", alignItems: "center", gap: spacing.md, marginVertical: spacing.sm },
+  dividerLine: { flex: 1, height: 1, backgroundColor: colors.divider },
+  dividerText: { fontSize: 13, color: colors.onSurfaceTertiary, fontWeight: "600" },
   counterRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.divider },
   counterLabel: { fontSize: 16, color: colors.onSurface, flex: 1, fontWeight: "500" },
   counterCtrls: { flexDirection: "row", alignItems: "center", gap: spacing.md },

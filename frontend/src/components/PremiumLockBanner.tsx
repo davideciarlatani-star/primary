@@ -1,6 +1,6 @@
 import { View, Text, Pressable, StyleSheet, ViewStyle } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useProfile } from "@/src/ProfileContext";
 import { colors, spacing, radius } from "@/src/theme";
 
 export function PremiumLockBanner({
@@ -12,8 +12,8 @@ export function PremiumLockBanner({
   style?: ViewStyle;
   onPress?: () => void;
 }) {
-  const router = useRouter();
-  const handle = onPress ?? (() => router.push("/(tabs)/profilo"));
+  const { showPaywall } = useProfile();
+  const handle = onPress ?? showPaywall;
   return (
     <Pressable style={[styles.banner, style]} onPress={handle} testID={testID}>
       <View style={styles.icon}>
