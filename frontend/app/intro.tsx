@@ -1,7 +1,5 @@
-import { useRef, useState } from "react";
-import {
-  View, Text, StyleSheet, Pressable, FlatList, useWindowDimensions,
-} from "react-native";
+import { useState } from "react";
+import { View, Text, StyleSheet, Pressable } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
@@ -35,8 +33,8 @@ const SLIDES: Slide[] = [
     icon: "shield-checkmark",
     iconColor: colors.success,
     iconBg: "#ECFDF5",
-    title: "I tuoi dati restano sul telefono",
-    body: "I dati che inserisci sono autocertificati: li scrivi tu e nessun ente li controlla. Non serve account né password — tutto viene conservato solo su questo dispositivo.",
+    title: "I tuoi dati restano privati",
+    body: "I dati che inserisci non vengono diffusi né condivisi con nessuno. Puoi modificarli in qualsiasi momento e sono auto-certificati da te: nessuna verifica esterna è richiesta.",
     footnote: "BonusRadar è uno strumento informativo: non sostituisce la consulenza di un professionista.",
   },
   {
@@ -45,17 +43,16 @@ const SLIDES: Slide[] = [
     iconColor: colors.accentOrange,
     iconBg: colors.accentOrangeLight,
     title: "Siamo pronti, iniziamo!",
-    body: "Poche semplici domande per costruire il tuo profilo. Al termine ti mostriamo subito tutti i bonus a cui puoi accedere. Ci vogliono meno di due minuti.",
+    body: "Combinando i dati riusciremo a trovare i bonus specifici per te, sei pronto a scoprirli?",
   },
 ];
 
 export default function Intro() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { width } = useWindowDimensions();
   const [index, setIndex] = useState(0);
-  const listRef = useRef<FlatList<Slide>>(null);
   const last = index === SLIDES.length - 1;
+  const slide = SLIDES[index];
 
   const finish = async () => {
     await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -69,7 +66,6 @@ export default function Intro() {
       await finish();
       return;
     }
-    listRef.current?.scrollToIndex({ index: index + 1, animated: true });
     setIndex(index + 1);
   };
 
@@ -81,28 +77,14 @@ export default function Intro() {
         </Pressable>
       </View>
 
-      <FlatList
-        ref={listRef}
-        data={SLIDES}
-        horizontal
-        pagingEnabled
-        bounces={false}
-        showsHorizontalScrollIndicator={false}
-        keyExtractor={(s) => s.key}
-        onMomentumScrollEnd={(e) =>
-          setIndex(Math.round(e.nativeEvent.contentOffset.x / width))
-        }
-        renderItem={({ item }) => (
-          <View style={[styles.slide, { width }]} testID={`intro-slide-${item.key}`}>
-            <View style={[styles.iconCircle, { backgroundColor: item.iconBg }]}>
-              <Ionicons name={item.icon as any} size={44} color={item.iconColor} />
-            </View>
-            <Text style={styles.title}>{item.title}</Text>
-            <Text style={styles.body}>{item.body}</Text>
-            {!!item.footnote && <Text style={styles.footnote}>{item.footnote}</Text>}
-          </View>
-        )}
-      />
+      <View style={styles.slide} testID={`intro-slide-${slide.key}`}>
+        <View style={[styles.iconCircle, { backgroundColor: slide.iconBg }]}>
+          <Ionicons name={slide.icon as any} size={44} color={slide.iconColor} />
+        </View>
+        <Text style={styles.title}>{slide.title}</Text>
+        <Text style={styles.body}>{slide.body}</Text>
+        {!!slide.footnote && <Text style={styles.footnote}>{slide.footnote}</Text>}
+      </View>
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md }]}>
         <View style={styles.dots}>

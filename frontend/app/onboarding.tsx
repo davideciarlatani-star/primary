@@ -10,7 +10,7 @@ import { useRouter } from "expo-router";
 import { useProfile } from "@/src/ProfileContext";
 import { colors, spacing, radius } from "@/src/theme";
 import {
-  Profile, DEFAULT_PROFILE, AGE_RANGES, EMPLOYMENTS, ISEE_RANGES, REGIONS,
+  Profile, DEFAULT_PROFILE, EMPLOYMENTS, ISEE_RANGES, REGIONS,
 } from "@/src/types";
 
 export default function Onboarding() {
@@ -54,12 +54,8 @@ export default function Onboarding() {
         keyboardShouldPersistTaps="handled"
       >
         {step === 0 && (
-          <Question title="Quanti anni hai?" subtitle="Inserisci l'età esatta per risultati precisi, oppure scegli una fascia.">
-            <ExactInput label="La tua età esatta" placeholder="Es. 34" suffix="anni" value={p.age ?? null} onChange={(v) => set({ age: v })} testID="input-age" />
-            <Divider label="Oppure seleziona una fascia" />
-            {AGE_RANGES.map((a) => (
-              <Choice key={a} label={`${a} anni`} selected={p.age == null && p.age_range === a} onPress={() => set({ age_range: a, age: null })} testID={`age-${a}`} />
-            ))}
+          <Question title="Quanti anni hai?" subtitle="Digita la tua età: ci serve per trovare i bonus giusti per te.">
+            <ExactInput label="La tua età" placeholder="Es. 34" suffix="anni" value={p.age ?? null} onChange={(v) => set({ age: v })} testID="input-age" />
           </Question>
         )}
 
