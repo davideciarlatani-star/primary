@@ -32,7 +32,7 @@ export default function Profilo() {
 
   const reset = async () => {
     await clearProfile();
-    router.replace("/onboarding");
+    router.replace("/intro");
   };
 
   return (
@@ -91,7 +91,7 @@ export default function Profilo() {
           ))}
         </View>
 
-        <Pressable style={styles.editBtn} onPress={() => router.push("/onboarding")} testID="profile-edit">
+        <Pressable style={styles.editBtn} onPress={() => router.replace("/intro")} testID="profile-edit">
           <Ionicons name="create-outline" size={20} color={colors.onBrandPrimary} />
           <Text style={styles.editText}>Modifica profilo</Text>
         </Pressable>
