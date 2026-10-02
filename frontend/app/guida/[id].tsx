@@ -3,12 +3,12 @@ import {
   View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator, Linking, Modal,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { api } from "@/src/api";
 import { useProfile } from "@/src/ProfileContext";
 import { PremiumLockBanner } from "@/src/components/PremiumLockBanner";
+import { openAskAi } from "@/src/utils/askAi";
 import { colors, spacing, radius } from "@/src/theme";
 
 export default function Guida() {
@@ -20,6 +20,16 @@ export default function Guida() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [helpIndex, setHelpIndex] = useState<number | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 2800);
+    return () => clearTimeout(t);
+  }, [toast]);
+
+  const buildPrompt = () =>
+    `Sto cercando di richiedere ${guide.title} ma sono bloccato a questo passaggio: ${guide.steps[helpIndex ?? 0]}. Come posso procedere?`;
 
   useEffect(() => {
     (async () => {
@@ -84,12 +94,10 @@ export default function Guida() {
               <View style={styles.stepNum}><Text style={styles.stepNumText}>{i + 1}</Text></View>
               <View style={styles.stepBody}>
                 <Text style={styles.stepText}>{s}</Text>
-                {guide.steps_help && (
-                  <Pressable style={styles.stuckBtn} onPress={() => setHelpIndex(i)} testID={`stuck-btn-${i}`}>
-                    <Ionicons name="help-buoy" size={14} color={colors.accentOrange} />
-                    <Text style={styles.stuckBtnText}>Bloccato?</Text>
-                  </Pressable>
-                )}
+                <Pressable style={styles.stuckBtn} onPress={() => setHelpIndex(i)} testID={`stuck-btn-${i}`}>
+                  <Ionicons name="help-buoy" size={14} color={colors.accentOrange} />
+                  <Text style={styles.stuckBtnText}>Bloccato?</Text>
+                </Pressable>
               </View>
             </View>
           ))}
